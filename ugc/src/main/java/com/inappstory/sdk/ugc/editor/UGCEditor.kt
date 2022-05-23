@@ -166,8 +166,36 @@ internal class UGCEditor : AppCompatActivity() {
         resumeEditor()
     }
 
-    private fun initWebView() {
+    private fun filterTypes(types: List<String>?): Pair<String?, ArrayList<String>> {
+        val res = arrayListOf<String>()
+        var isVideo = false
+        var isImage = false
+        var resType: String? = null
+        types?.forEach {
+            if (it.startsWith(imageType)) {
+                if (!isVideo) {
+                    isImage = true
+                    res.add(it)
+                    resType = imageType
+                }
+            }
+            if (it.startsWith(videoType)) {
+                if (!isImage) {
+                    isVideo = true
+                    res.add(it)
+                    resType = videoType
+                }
+            }
+        }
+        return Pair(resType, res)
+    }
 
+
+    private val videoType = "video"
+    private val imageType = "image"
+
+    private fun initWebView() {
+        webView.settings.minimumFontSize = 1
         webView.addJavascriptInterface(
             UGCJSInterface(
                 this@UGCEditor
@@ -180,19 +208,22 @@ internal class UGCEditor : AppCompatActivity() {
                 filePathCallback: ValueCallback<Array<Uri>>?,
                 fileChooserParams: FileChooserParams?
             ): Boolean {
+
                 this@UGCEditor.filePathCallback = filePathCallback
-                val intent = Intent(
-                    this@UGCEditor,
-                    FileChooseActivity::class.java
-                )
-                intent.putStringArrayListExtra("acceptTypes",
-                    arrayListOf<String>().apply {
-                        addAll(
-                            fileChooserParams?.acceptTypes?.asList() ?: arrayListOf()
-                        )
-                    })
-                startActivityForResult(intent, CHOOSE_FILE_REQUEST_CODE)
-                return false
+                val filteredTypes = filterTypes(fileChooserParams?.acceptTypes?.asList())
+                if (filteredTypes.first.orEmpty().isNotEmpty()) {
+                    val intent = Intent(
+                        this@UGCEditor,
+                        FileChooseActivity::class.java
+                    )
+                    intent.putStringArrayListExtra(
+                        "acceptTypes",
+                        filteredTypes.second
+                    )
+                    intent.putExtra("type", filteredTypes.first)
+                    startActivityForResult(intent, CHOOSE_FILE_REQUEST_CODE)
+                }
+                return true
             }
 
             override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
@@ -264,15 +295,17 @@ internal class UGCEditor : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             CHOOSE_FILE_REQUEST_CODE -> {
+                var arr: Array<Uri> = arrayOf()
                 if (resultCode == Activity.RESULT_OK) {
                     val filePath = data?.getStringExtra("file")
                     if (filePath != null) {
-                        filePathCallback?.onReceiveValue(
-                            arrayOf(Uri.fromFile(File(filePath)))
-                        )
+                        arr = arrayOf(Uri.fromFile(File(filePath)))
                     }
-                    filePathCallback = null
                 }
+                filePathCallback?.onReceiveValue(
+                    arr
+                )
+                filePathCallback = null
             }
         }
     }

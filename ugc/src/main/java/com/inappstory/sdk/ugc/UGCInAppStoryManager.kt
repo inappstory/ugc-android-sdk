@@ -41,6 +41,12 @@ object UGCInAppStoryManager {
                     editorConfig.isSandbox = InAppStoryManager.getInstance()?.isSandbox ?: false
                     editorConfig.sdkVersion = InAppStoryManager.getLibraryVersion().first
                     editorConfig.sessionId = StatisticSession.getInstance()?.id ?: ""
+
+                    editorConfig.config = StatisticSession.getInstance()?.editor?.config
+
+                    editorConfig.apiKey = context.resources.getString(R.string.csApiKey)
+                    editorConfig.tId = "ru"
+                    //editorConfig.storyId = 5958
                     ugcInitData?.let {
 
                     }

@@ -16,13 +16,24 @@ import java.io.FileInputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-class FilePreviewsCache {
+public class FilePreviewsCache {
     private LruCache<String, Bitmap> memoryCache;
 
     ExecutorService executorService = Executors.newSingleThreadExecutor();
 
+    boolean noCache = false;
+
+    public FilePreviewsCache(boolean noCache) {
+        this.noCache = noCache;
+        init();
+    }
 
     public FilePreviewsCache() {
+        init();
+    }
+
+    private void init() {
+        if (noCache) return;
         int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSize = maxMemory / 16;
         memoryCache = new LruCache<String, Bitmap>(cacheSize) {
@@ -33,6 +44,7 @@ class FilePreviewsCache {
         };
     }
 
+
     public void remove(String path, ImageView imageView) {
 
     }
@@ -40,8 +52,9 @@ class FilePreviewsCache {
 
     public void loadPreview(String path, ImageView imageView, boolean isVideo) {
         if (isVideo) loadVideoThumbnail(path, imageView);
-        else loadBitmap(path, imageView);
+        else loadBitmap(path, imageView, noCache);
     }
+
 
     private void loadVideoThumbnail(String path, ImageView imageView) {
         Bitmap bmp = getBitmap(path);
@@ -60,13 +73,16 @@ class FilePreviewsCache {
         }
     }
 
-    private void loadBitmap(String path, ImageView imageView) {
-        Bitmap bmp = getBitmap(path);
+    private void loadBitmap(String path, ImageView imageView, boolean noCache) {
+        Bitmap bmp = null;
+        if (!noCache)
+            bmp = getBitmap(path);
         if (bmp == null) {
             File file = new File(path);
             executorService.submit(() -> {
                 Bitmap loaded = decodeFile(file);
-                memoryCache.put(path, loaded);
+                if (!noCache)
+                    memoryCache.put(path, loaded);
                 try {
                     new Handler(Looper.getMainLooper()).post(() -> {
                         imageView.setImageBitmap(loaded);

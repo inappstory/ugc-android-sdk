@@ -20,17 +20,23 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
     List<String> imagePath = new ArrayList<>();
     boolean isVideo;
     FilePreviewsCache cache = new FilePreviewsCache();
-    OpenCameraClickCallback callback;
+    OpenCameraClickCallback cameraCallback;
+    FileClickCallback clickCallback;
 
-    public FilePreviewsAdapter(Context context, boolean isVideo, OpenCameraClickCallback callback) {
-        this.callback = callback;
+    public FilePreviewsAdapter(Context context,
+                               boolean isVideo,
+                               List<String> mimeTypes,
+                               FileClickCallback clickCallback,
+                               OpenCameraClickCallback cameraCallback) {
+        this.cameraCallback = cameraCallback;
+        this.clickCallback = clickCallback;
         this.isVideo = isVideo;
         if (isVideo) {
             this.picker = new VideoPicker();
         } else {
             this.picker = new ImagePicker();
         }
-        imagePath.addAll(picker.getImagesPath(context, null));
+        imagePath.addAll(picker.getImagesPath(context, mimeTypes));
     }
 
     @Override
@@ -54,6 +60,7 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
                     parent, false);
             v.setOnClickListener(clicked -> {
                 activePos = viewType;
+                clickCallback.select(imagePath.get(activePos - 1));
                 notifyDataSetChanged();
             });
         }
@@ -89,7 +96,10 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
             }
         } else {
             holder.itemView.setOnClickListener(v -> {
-                callback.open(isVideo);
+                activePos = -1;
+                clickCallback.unselect();
+                cameraCallback.open(isVideo);
+                notifyDataSetChanged();
             });
         }
     }

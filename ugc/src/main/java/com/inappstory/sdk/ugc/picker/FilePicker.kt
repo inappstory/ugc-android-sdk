@@ -11,6 +11,8 @@ abstract class FilePicker {
 
     abstract fun getImagesPath(context: Context, mimeTypes: List<String>?): ArrayList<String>?
 
+    private val columnID = "_id"
+
     protected fun getImagesPath(
         context: Context,
         uri: Uri?,
@@ -19,21 +21,24 @@ abstract class FilePicker {
         val listOfAllImages = ArrayList<String>()
         val cursor: Cursor?
         var pathOfImage: String? = null
-        val projection = arrayOf(MediaStore.Images.Media._ID)
-        var selection: String? = null
-        var filter: MutableList<String>? = null
-        if (mimeTypes != null) {
-            selection = ""
-            filter = mutableListOf()
-        }
+        var mt: String? = null
+        val projection = arrayOf(MediaStore.MediaColumns.DATA, MediaStore.MediaColumns.MIME_TYPE)
+        val selection: String? = null
+        /* var filter: MutableList<String>? = null
+    if (mimeTypes != null) {
+        selection = ""
+        filter = mutableListOf()
+    }*/
         cursor = context.contentResolver.query(
             uri!!, projection, selection,
-            filter?.toTypedArray(), null
+            null, null
         )
-        val columnIndexData: Int = cursor!!.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+        val columnIndexData: Int = cursor!!.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
+        val columnIndexMT: Int = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE)
         while (cursor.moveToNext()) {
-            pathOfImage = cursor.getString(columnIndexData)
-            listOfAllImages.add(pathOfImage)
+            if (mimeTypes != null && mimeTypes.contains(cursor.getString(columnIndexMT))) {
+                listOfAllImages.add(cursor.getString(columnIndexData))
+            }
         }
         cursor.close()
         return listOfAllImages

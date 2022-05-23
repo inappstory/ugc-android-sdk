@@ -8,6 +8,8 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.List;
+
 public class FilePreviewsList extends RecyclerView {
     public FilePreviewsList(@NonNull Context context) {
         super(context);
@@ -30,10 +32,19 @@ public class FilePreviewsList extends RecyclerView {
                 false));
     }
 
-    public void load(boolean isVideo, OpenCameraClickCallback callback) {
-        setAdapter(new FilePreviewsAdapter(getContext(), isVideo, callback));
+    public void load(boolean isVideo,
+                     List<String> mimeTypes,
+                     FileClickCallback clickCallback,
+                     OpenCameraClickCallback cameraCallback) {
+        setAdapter(
+                new FilePreviewsAdapter(getContext(),
+                        isVideo,
+                        mimeTypes,
+                        clickCallback,
+                        cameraCallback
+                )
+        );
     }
-
 
 
 }

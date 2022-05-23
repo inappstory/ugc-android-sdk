@@ -4,6 +4,7 @@ import com.inappstory.sdk.stories.api.models.SessionEditorConfig
 
 internal class EditorConfig {
     var sessionId: String? = null
+    var apiKey: String? = null
     var config: SessionEditorConfig? = null
     var isSandbox = false
     var tId: String? = null

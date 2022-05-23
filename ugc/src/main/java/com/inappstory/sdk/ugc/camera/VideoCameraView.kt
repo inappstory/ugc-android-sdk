@@ -1,13 +1,21 @@
 package com.inappstory.sdk.ugc.camera
 
 import android.content.Context
+import android.hardware.camera2.CameraManager
 import android.util.AttributeSet
 
 class VideoCameraView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
 ) : CameraView(context, attrs) {
-    override fun getTempFileName(): String {
-        return "test.mp4"
+    override fun createCameraService(
+        cameraManager: CameraManager,
+        cameraID: String
+    ): CameraService {
+        return VideoCameraService(cameraManager, cameraID)
+    }
+
+    override fun getTempFileExt(): String {
+        return "mp4"
     }
 
     fun startRecording() {

@@ -67,9 +67,11 @@ abstract class CameraService(
 
     @SuppressLint("MissingPermission")
     fun openCamera() {
+        preOpenCamera()
         try {
             mCameraManager?.openCamera(mCameraID!!, mCameraCallback, mBackgroundHandler)
         } catch (ignored: CameraAccessException) {
+            ignored.printStackTrace()
         }
     }
 

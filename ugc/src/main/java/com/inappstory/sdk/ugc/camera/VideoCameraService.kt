@@ -18,19 +18,25 @@ class VideoCameraService(cameraManager: CameraManager, cameraID: String) :
     private var mPreviewBuilder: CaptureRequest.Builder? = null
     private var recorderSurface: Surface? = null
 
+    var recorderStarted = false
+
     private fun stopMediaRecorder() {
-        mMediaRecorder?.stop()
+        if (recorderStarted)
+            mMediaRecorder?.stop()
+        recorderStarted = false
         mMediaRecorder?.release()
         mMediaRecorder = null
     }
 
+
     override fun startCameraPreview() {
-        mTexture!!.setDefaultBufferSize(720, 1280)
-        val surface = Surface(mTexture)
+        mTexture!!.setDefaultBufferSize(1280, 720)
+        var surface = Surface(mTexture)
         try {
-            mPreviewBuilder = mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)?.also {
-                it.addTarget(surface)
-            }
+            mPreviewBuilder =
+                mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)?.also {
+                    it.addTarget(surface)
+                }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 recorderSurface = MediaCodec.createPersistentInputSurface()
                 mMediaRecorder?.setInputSurface(recorderSurface!!)
@@ -57,7 +63,9 @@ class VideoCameraService(cameraManager: CameraManager, cameraID: String) :
                         }
                     }
 
-                    override fun onConfigureFailed(session: CameraCaptureSession) {}
+                    override fun onConfigureFailed(session: CameraCaptureSession) {
+
+                    }
                 }, mBackgroundHandler
             )
         } catch (e: CameraAccessException) {
@@ -71,7 +79,7 @@ class VideoCameraService(cameraManager: CameraManager, cameraID: String) :
 
 
     private fun setUpMediaRecorder() {
-        val profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH)
+        val profile = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P)
         stopMediaRecorder()
         mMediaRecorder = MediaRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
@@ -89,9 +97,11 @@ class VideoCameraService(cameraManager: CameraManager, cameraID: String) :
             setAudioSamplingRate(profile.audioSampleRate)
         }
     }
+
     fun startRecording() {
         GlobalScope.launch(Dispatchers.IO) {
             mMediaRecorder!!.start()
+            recorderStarted = true
         }
     }
 

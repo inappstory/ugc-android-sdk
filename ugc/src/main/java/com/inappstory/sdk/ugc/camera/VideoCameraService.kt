@@ -9,7 +9,9 @@ import android.view.Surface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+
 import java.lang.Exception
+import kotlin.math.min
 
 class VideoCameraService(cameraManager: CameraManager, cameraID: String) :
     CameraService(cameraManager, cameraID) {
@@ -77,9 +79,23 @@ class VideoCameraService(cameraManager: CameraManager, cameraID: String) :
         stopMediaRecorder()
     }
 
+    var stopCallback: VideoForceStopCallback? = null
 
     private fun setUpMediaRecorder() {
-        val profile = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P)
+        val profile: CamcorderProfile = when {
+            CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_1080P) -> {
+                CamcorderProfile.get(CamcorderProfile.QUALITY_1080P)
+            }
+            CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_720P) -> {
+                CamcorderProfile.get(CamcorderProfile.QUALITY_720P)
+            }
+            CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_HIGH) -> {
+                CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH)
+            }
+            else -> {
+                return
+            }
+        }
         stopMediaRecorder()
         mMediaRecorder = MediaRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
@@ -87,14 +103,22 @@ class VideoCameraService(cameraManager: CameraManager, cameraID: String) :
             setOrientationHint(90)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setOutputFile(mFile!!.absolutePath)
-            setVideoSize(640, 480)
             setVideoFrameRate(profile.videoFrameRate)
             setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight)
-            setVideoEncodingBitRate(profile.videoBitRate)
+            setVideoEncodingBitRate(min(profile.videoBitRate, 3500000))
             setVideoEncoder(MediaRecorder.VideoEncoder.H264)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-            setAudioEncodingBitRate(profile.audioBitRate)
+            setAudioEncodingBitRate(min(profile.audioBitRate, 256000))
             setAudioSamplingRate(profile.audioSampleRate)
+            setMaxDuration(60000)
+
+        }.also {
+            it.setOnInfoListener { _, what, _ ->
+                if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
+                    //stopRecording()
+                    stopCallback?.onStop()
+                }
+            }
         }
     }
 

@@ -49,14 +49,17 @@ public class FilePreviewsCache {
 
     }
 
+    public interface FileLoadCallback {
+        void onLoaded();
+    }
 
-    public void loadPreview(String path, ImageView imageView, boolean isVideo) {
-        if (isVideo) loadVideoThumbnail(path, imageView);
-        else loadBitmap(path, imageView, noCache);
+    public void loadPreview(String path, ImageView imageView, boolean isVideo, FileLoadCallback callback) {
+        if (isVideo) loadVideoThumbnail(path, imageView, callback);
+        else loadBitmap(path, imageView, noCache, callback);
     }
 
 
-    private void loadVideoThumbnail(String path, ImageView imageView) {
+    private void loadVideoThumbnail(String path, ImageView imageView, FileLoadCallback callback) {
         Bitmap bmp = getBitmap(path);
         if (bmp == null) {
             executorService.submit(() -> {
@@ -65,6 +68,7 @@ public class FilePreviewsCache {
                 memoryCache.put(path, loaded);
                 try {
                     new Handler(Looper.getMainLooper()).post(() -> {
+                        if (callback != null) callback.onLoaded();
                         imageView.setImageBitmap(loaded);
                     });
                 } catch (Exception e) {
@@ -73,7 +77,7 @@ public class FilePreviewsCache {
         }
     }
 
-    private void loadBitmap(String path, ImageView imageView, boolean noCache) {
+    private void loadBitmap(String path, ImageView imageView, boolean noCache, FileLoadCallback callback) {
         Bitmap bmp = null;
         if (!noCache)
             bmp = getBitmap(path);
@@ -85,6 +89,7 @@ public class FilePreviewsCache {
                     memoryCache.put(path, loaded);
                 try {
                     new Handler(Looper.getMainLooper()).post(() -> {
+                        if (callback != null) callback.onLoaded();
                         imageView.setImageBitmap(loaded);
                        /* if (viewsCache.get(path) != null) {
                             viewsCache.get(path)

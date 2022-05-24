@@ -80,15 +80,18 @@ class CameraFragment : Fragment() {
         cameraView?.let {
             if (isVideo && videoStarted) {
                 videoStarted = !videoStarted
+                cameraButton?.stop()
+                it.pauseCameraView()
                 GlobalScope.launch(Dispatchers.IO) {
+                    delay(300)
                     stopVideo()
                 }
-                return
+            } else {
+                it.myCameras.values.forEach { cs ->
+                    if (cs.isOpen()) cameraWasOpen = true;
+                }
+                it.pauseCameraView()
             }
-            it.myCameras.values.forEach { cs ->
-                if (cs.isOpen()) cameraWasOpen = true;
-            }
-            it.pauseCameraView()
 
         }
     }
@@ -96,15 +99,24 @@ class CameraFragment : Fragment() {
     val cache = FilePreviewsCache(true)
 
     var videoStarted = false
+    var cameraButton: CameraButton? = null
 
-    private var recordLayout:View? = null
-    private var previewLayout:View? = null
-    private var videoPlayer:VideoPlayer? = null
+    private var recordLayout: View? = null
+    private var previewLayout: View? = null
+    private var videoPlayer: VideoPlayer? = null
+
     private fun initVideoScreen(view: View) {
-        val cameraButton = view.findViewById<CameraButton>(R.id.cameraButton)
         recordLayout = view.findViewById(R.id.recordLayout)
         previewLayout = view.findViewById(R.id.previewLayout)
-        videoPlayer = view.findViewById(R.id.videoPreview)
+        videoPlayer = view.findViewById<VideoPlayer>(R.id.preview).also {
+            it.layoutParams = RelativeLayout.LayoutParams(
+                Sizes.getScreenSize(context).x,
+                min(
+                    (16 * Sizes.getScreenSize(context).x) / 9,
+                    Sizes.getScreenSize(context).y
+                )
+            )
+        }
         val restart = view.findViewById<FloatingActionButton>(R.id.restart)
         val changeCam = view.findViewById<FloatingActionButton>(R.id.changeCam)
         val approve = view.findViewById<FloatingActionButton>(R.id.approve)
@@ -115,26 +127,29 @@ class CameraFragment : Fragment() {
             else
                 openFrontCamera()
         }
-        cameraButton.isVideoButton = true
-        cameraButton.setOnClickListener {
-            if (videoStarted) {
-                cameraView?.pauseCameraView()
-                GlobalScope.launch(Dispatchers.IO) {
-                    delay(300)
-                    stopVideo()
-                    videoStarted = !videoStarted
-                }
-            } else {
-                GlobalScope.launch(Dispatchers.IO) {
-                    delay(300)
-                    startVideo()
+        cameraButton = view.findViewById<CameraButton>(R.id.cameraButton).also {
+            it.isVideoButton = true
+            it.setOnClickListener {
+                if (videoStarted) {
+                    cameraView?.pauseCameraView()
+                    GlobalScope.launch(Dispatchers.IO) {
+                        delay(300)
+                        stopVideo()
+                        videoStarted = !videoStarted
+                    }
+                } else {
+                    GlobalScope.launch(Dispatchers.IO) {
+                        delay(300)
+                        startVideo()
 
-                    videoStarted = !videoStarted
+                        videoStarted = !videoStarted
+                    }
                 }
             }
         }
         restart.setOnClickListener {
             previewLayout?.visibility = View.GONE
+            videoPlayer?.destroy()
             recordLayout?.visibility = View.VISIBLE
             cameraView?.resumeCameraView()
             if (lastIsBackCam)
@@ -158,7 +173,6 @@ class CameraFragment : Fragment() {
 
     private fun initPhotoScreen(view: View) {
         var videoStarted = false
-        val cameraButton = view.findViewById<CameraButton>(R.id.cameraButton)
         recordLayout = view.findViewById(R.id.recordLayout)
         previewLayout = view.findViewById(R.id.previewLayout)
         val restart = view.findViewById<FloatingActionButton>(R.id.restart)
@@ -179,16 +193,18 @@ class CameraFragment : Fragment() {
             else
                 openFrontCamera()
         }
-        cameraButton.setOnClickListener {
-            GlobalScope.launch(Dispatchers.IO) {
-                makePhoto(saveAction = {
-                    GlobalScope.launch(Dispatchers.Main) {
-                        cache.loadPreview(it, preview, false)
-                        //ImageLoader.getInstance().displayImage(it, -1, preview)
-                    }
-                }, action = {
-                    showPreview()
-                })
+        cameraButton = view.findViewById<CameraButton>(R.id.cameraButton).also {
+            it.setOnClickListener {
+                GlobalScope.launch(Dispatchers.IO) {
+                    makePhoto(saveAction = {
+                        GlobalScope.launch(Dispatchers.Main) {
+                            cache.loadPreview(it, preview, false, null)
+                            //ImageLoader.getInstance().displayImage(it, -1, preview)
+                        }
+                    }, action = {
+                        showPreview()
+                    })
+                }
             }
         }
         restart.setOnClickListener {
@@ -251,7 +267,25 @@ class CameraFragment : Fragment() {
     }
 
     private fun startVideo() {
-        (cameraView!! as VideoCameraView).startRecording()
+
+        (cameraView!! as VideoCameraView).apply {
+            setForceStopCallback(object : VideoForceStopCallback {
+                override fun onStop() {
+                    if (isVideo && videoStarted) {
+                        videoStarted = !videoStarted
+                        cameraButton?.stop()
+                        cameraView?.pauseCameraView()
+                        GlobalScope.launch(Dispatchers.IO) {
+                            delay(300)
+                            (cameraView!! as VideoCameraView).stopRecording()
+                            showPreview()
+                            videoPlayer?.loadVideo(cameraView!!.filePath!!)
+                        }
+                    }
+                }
+            })
+            startRecording()
+        }
     }
 
     private fun stopVideo() {

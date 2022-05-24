@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <RelativeLayout
-        android:layout_width="match_parent"
         android:id="@+id/recordLayout"
-        android:elevation="8dp"
-        android:layout_height="match_parent">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="8dp">
 
         <com.inappstory.sdk.ugc.camera.VideoCameraView
             android:id="@+id/cameraView"
@@ -16,50 +17,62 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_alignParentBottom="true"
-            android:layout_margin="40dp"
-            android:layout_height="wrap_content">
-        <com.inappstory.sdk.ugc.camera.CameraButton
-            android:layout_width="56dp"
             android:layout_height="56dp"
-            android:id="@+id/cameraButton"
-            android:layout_centerInParent="true"/>
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:layout_width="wrap_content"
-            android:layout_centerVertical="true"
-            android:src="@drawable/ic_refresh"
-            android:id="@+id/changeCam"
-            android:layout_height="wrap_content"/>
+            android:layout_alignParentBottom="true"
+            android:layout_margin="40dp">
+
+            <com.inappstory.sdk.ugc.camera.CameraButton
+                android:id="@+id/cameraButton"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_centerInParent="true" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/changeCam"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:backgroundTint="@color/white"
+                android:tint="@color/black"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_refresh" />
         </RelativeLayout>
     </RelativeLayout>
+
     <RelativeLayout
+        android:id="@+id/previewLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
-        android:id="@+id/previewLayout">
+        android:visibility="gone">
+
         <com.inappstory.sdk.stories.ui.video.VideoPlayer
+            android:id="@+id/preview"
             android:layout_width="match_parent"
-            android:id="@+id/videoPreview"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent" />
+
         <RelativeLayout
             android:layout_width="match_parent"
+            android:layout_height="56dp"
             android:layout_alignParentBottom="true"
-            android:layout_margin="40dp"
-            android:layout_height="wrap_content">
+            android:layout_margin="40dp">
+
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:layout_width="wrap_content"
-                android:layout_centerVertical="true"
-                android:src="@drawable/ic_stories_close"
                 android:id="@+id/restart"
-                android:layout_height="wrap_content"/>
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:backgroundTint="@color/white"
+                android:tint="@color/black"
                 android:layout_centerVertical="true"
-                android:layout_alignParentRight="true"
-                android:layout_margin="36dp"
+                android:src="@drawable/ic_stories_close" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/approve"
-                android:src="@drawable/cs_approve_upload"
-                android:layout_height="wrap_content"/>
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:backgroundTint="@color/white"
+                android:tint="@color/black"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:src="@drawable/cs_approve_upload" />
         </RelativeLayout>
 
 

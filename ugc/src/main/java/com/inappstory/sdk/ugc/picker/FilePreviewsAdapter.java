@@ -1,14 +1,17 @@
 package com.inappstory.sdk.ugc.picker;
 
 import android.content.Context;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.inappstory.sdk.AppearanceManager;
 import com.inappstory.sdk.stories.utils.Sizes;
 import com.inappstory.sdk.ugc.R;
 
@@ -63,9 +66,21 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
                 clickCallback.select(imagePath.get(activePos - 1));
                 notifyDataSetChanged();
             });
+            ((RelativeLayout) v.findViewById(R.id.loaderContainer)).addView(createLoader(parent.getContext()));
         }
 
         return new FilePreviewsHolder(v);
+    }
+
+    private View createLoader(Context context) {
+        View loader = new RelativeLayout(context);
+        loader.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            loader.setElevation(8);
+        }
+        ((ViewGroup) loader).addView(AppearanceManager.getLoader(context));
+        return loader;
     }
 
     @Override
@@ -91,8 +106,12 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
         if (position != 0) {
             holder.itemView.setSelected(position == activePos);
             ImageView iv = holder.itemView.findViewById(R.id.image);
+            RelativeLayout loader = holder.itemView.findViewById(R.id.loaderContainer);
             if (iv != null) {
-                cache.loadPreview(imagePath.get(position - 1), iv, isVideo);
+                cache.loadPreview(imagePath.get(position - 1), iv, isVideo, () -> {
+                    if (loader != null)
+                        loader.setVisibility(View.GONE);
+                });
             }
         } else {
             holder.itemView.setOnClickListener(v -> {

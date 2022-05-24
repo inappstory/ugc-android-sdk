@@ -29,6 +29,15 @@ class VideoCameraView @JvmOverloads constructor(
         }
     }
 
+
+    fun setForceStopCallback(videoForceStopCallback: VideoForceStopCallback) {
+        cameraIds.forEach { id->
+            myCameras[id]?.let {
+                (it as VideoCameraService).stopCallback = videoForceStopCallback
+            }
+        }
+    }
+
     fun stopRecording() {
         cameraIds.forEach { id->
             myCameras[id]?.let {

@@ -31,10 +31,11 @@
                 android:id="@+id/changeCam"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:maxImageSize="36dp"
                 app:backgroundTint="@color/white"
                 android:tint="@color/black"
                 android:layout_centerVertical="true"
-                android:src="@drawable/ic_refresh" />
+                android:src="@drawable/cs_camera_flip" />
         </RelativeLayout>
     </RelativeLayout>
 
@@ -60,9 +61,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:backgroundTint="@color/white"
+                app:maxImageSize="36dp"
                 android:tint="@color/black"
                 android:layout_centerVertical="true"
-                android:src="@drawable/ic_stories_close" />
+                android:src="@drawable/cs_camera_retake" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/approve"
@@ -70,6 +72,7 @@
                 android:layout_height="wrap_content"
                 app:backgroundTint="@color/white"
                 android:tint="@color/black"
+                app:maxImageSize="36dp"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:src="@drawable/cs_approve_upload" />

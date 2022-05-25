@@ -9,7 +9,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import android.hardware.camera2.CameraCharacteristics
-import android.view.OrientationEventListener
 
 
 internal class PhotoCameraService(cameraManager: CameraManager, cameraID: String) :
@@ -20,7 +19,7 @@ internal class PhotoCameraService(cameraManager: CameraManager, cameraID: String
     private val mOnImageAvailableListener =
         OnImageAvailableListener { reader ->
             mBackgroundHandler?.post(
-                ImageSaver(reader.acquireNextImage(), mFile!!,saveCallback)
+                ImageSaver(reader.acquireNextImage(), mFile!!, saveCallback)
             )
         }
 
@@ -32,7 +31,8 @@ internal class PhotoCameraService(cameraManager: CameraManager, cameraID: String
 
     override fun startCameraPreview() {
         val size = characteristics.get(
-            CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!
+            CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
+        )!!
             .getOutputSizes(ImageFormat.JPEG).maxByOrNull { it.height * it.width }!!
         mImageReader = ImageReader.newInstance(1920, 1080, ImageFormat.JPEG, 3)
         mTexture!!.setDefaultBufferSize(1920, 1080)
@@ -85,93 +85,36 @@ internal class PhotoCameraService(cameraManager: CameraManager, cameraID: String
             val captureBuilder =
                 mCameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
                     .apply { addTarget(mImageReader.surface) }
-            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION,
-                getJpegOrientation(characteristics))
+            captureBuilder.set(
+                CaptureRequest.JPEG_ORIENTATION,
+                getJpegOrientation(characteristics)
+            )
             var builder = captureBuilder.build()
             mCaptureSession!!.capture(
                 builder,
-                object : CaptureCallback() {
-                    override fun onCaptureStarted(
-                        session: CameraCaptureSession,
-                        request: CaptureRequest,
-                        timestamp: Long,
-                        frameNumber: Long
-                    ) {
-                        super.onCaptureStarted(session, request, timestamp, frameNumber)
-                    }
-
-                    override fun onCaptureCompleted(
-                        session: CameraCaptureSession,
-                        request: CaptureRequest,
-                        result: TotalCaptureResult
-                    ) {
-                        super.onCaptureCompleted(session, request, result)
-                    }
-
-                    override fun onCaptureBufferLost(
-                        session: CameraCaptureSession,
-                        request: CaptureRequest,
-                        target: Surface,
-                        frameNumber: Long
-                    ) {
-                        super.onCaptureBufferLost(session, request, target, frameNumber)
-                    }
-
-                    override fun onCaptureFailed(
-                        session: CameraCaptureSession,
-                        request: CaptureRequest,
-                        failure: CaptureFailure
-                    ) {
-                        super.onCaptureFailed(session, request, failure)
-                    }
-
-                    override fun onCaptureProgressed(
-                        session: CameraCaptureSession,
-                        request: CaptureRequest,
-                        partialResult: CaptureResult
-                    ) {
-                        super.onCaptureProgressed(session, request, partialResult)
-                    }
-
-                    override fun onCaptureSequenceAborted(
-                        session: CameraCaptureSession,
-                        sequenceId: Int
-                    ) {
-                        super.onCaptureSequenceAborted(session, sequenceId)
-                    }
-
-                    override fun onCaptureSequenceCompleted(
-                        session: CameraCaptureSession,
-                        sequenceId: Int,
-                        frameNumber: Long
-                    ) {
-                        super.onCaptureSequenceCompleted(session, sequenceId, frameNumber)
-                    }
-                }, mBackgroundHandler
+                object : CaptureCallback() {}, mBackgroundHandler
             )
-            //  mCaptureSession!!.stopRepeating()
-            //  mCaptureSession!!.abortCaptures()
         } catch (e: CameraAccessException) {
             e.printStackTrace()
         }
     }
 
+    val ORIENTATIONS = mapOf(
+        Surface.ROTATION_0 to 90,
+        Surface.ROTATION_90 to 0,
+        Surface.ROTATION_180 to 270,
+        Surface.ROTATION_270 to 180
+    )
+
+
     private fun getJpegOrientation(c: CameraCharacteristics, lDeviceOrientation: Int = 0): Int {
-        var deviceOrientation = lDeviceOrientation
-        if (deviceOrientation == OrientationEventListener.ORIENTATION_UNKNOWN) return 0
+        var deviceOrientation = ORIENTATIONS[lDeviceOrientation]!!
         val sensorOrientation = c.get(CameraCharacteristics.SENSOR_ORIENTATION)!!
-
-        // Round device orientation to a multiple of 90
-        deviceOrientation = (deviceOrientation + 45) / 90 * 90
-
-        // Reverse device orientation for front-facing cameras
         val facingFront =
             c.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT
         if (facingFront) deviceOrientation = -deviceOrientation
 
-        // Calculate desired JPEG orientation relative to camera orientation to make
-        // the image upright relative to the device orientation
-        return (sensorOrientation + deviceOrientation + 360) % 360
+        return (sensorOrientation + deviceOrientation + 270) % 360
     }
 
     override fun preOpenCamera() {

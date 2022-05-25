@@ -13,6 +13,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:elevation="8dp"
+        app:maxImageSize="36dp"
         android:id="@+id/upload"
         android:contentDescription="upload"
         android:src="@drawable/cs_approve_upload"

@@ -42,9 +42,13 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
         imagePath.addAll(picker.getImagesPath(context, mimeTypes));
     }
 
+
     @Override
     public void onViewRecycled(@NonNull FilePreviewsHolder holder) {
         super.onViewRecycled(holder);
+        if (holder.path != null && cache != null) {
+            cache.remove(holder.path);
+        }
        /* ImageView iv = holder.itemView.findViewById(R.id.image);
         if (iv != null) {
          //   iv.setImageBitmap(null);
@@ -66,21 +70,11 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
                 clickCallback.select(imagePath.get(activePos - 1));
                 notifyDataSetChanged();
             });
-            ((RelativeLayout) v.findViewById(R.id.loaderContainer)).addView(createLoader(parent.getContext()));
         }
+        v.getLayoutParams().width = Sizes.getScreenSize(v.getContext()).x / 3;
+        v.getLayoutParams().height = (16 * v.getLayoutParams().width) / 9;
 
         return new FilePreviewsHolder(v);
-    }
-
-    private View createLoader(Context context) {
-        View loader = new RelativeLayout(context);
-        loader.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            loader.setElevation(8);
-        }
-        ((ViewGroup) loader).addView(AppearanceManager.getLoader(context));
-        return loader;
     }
 
     @Override
@@ -100,18 +94,12 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull FilePreviewsHolder holder, int position) {
-        holder.itemView.getLayoutParams().width = Sizes.getScreenSize(holder.itemView.getContext()).x / 3;
-        holder.itemView.getLayoutParams().height = (16 * holder.itemView.getLayoutParams().width) / 9;
-        holder.itemView.requestLayout();
         if (position != 0) {
             holder.itemView.setSelected(position == activePos);
             ImageView iv = holder.itemView.findViewById(R.id.image);
-            RelativeLayout loader = holder.itemView.findViewById(R.id.loaderContainer);
             if (iv != null) {
-                cache.loadPreview(imagePath.get(position - 1), iv, isVideo, () -> {
-                    if (loader != null)
-                        loader.setVisibility(View.GONE);
-                });
+                holder.path = imagePath.get(position - 1);
+                cache.loadPreview(imagePath.get(position - 1), iv, isVideo);
             }
         } else {
             holder.itemView.setOnClickListener(v -> {

@@ -198,7 +198,7 @@ class CameraFragment : Fragment() {
                 GlobalScope.launch(Dispatchers.IO) {
                     makePhoto(saveAction = {
                         GlobalScope.launch(Dispatchers.Main) {
-                            cache.loadPreview(it, preview, false, null)
+                            cache.loadPreview(it, preview, false)
                             //ImageLoader.getInstance().displayImage(it, -1, preview)
                         }
                     }, action = {

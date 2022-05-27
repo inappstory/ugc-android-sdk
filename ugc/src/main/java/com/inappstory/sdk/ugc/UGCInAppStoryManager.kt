@@ -3,6 +3,8 @@ package com.inappstory.sdk.ugc
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.os.Build
+import android.provider.Settings
 import com.inappstory.sdk.AppearanceManager
 import com.inappstory.sdk.InAppStoryManager
 import com.inappstory.sdk.network.JsonParser
@@ -17,6 +19,7 @@ import com.inappstory.sdk.ugc.editor.UGCEditor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.*
 
 object UGCInAppStoryManager {
     internal var currentEditor: UGCEditor? = null
@@ -37,20 +40,11 @@ object UGCInAppStoryManager {
                                 currentEditor = null
                             }
                         }
-                    val editorConfig = EditorConfig()
-                    editorConfig.isSandbox = InAppStoryManager.getInstance()?.isSandbox ?: false
-                    editorConfig.sdkVersion = InAppStoryManager.getLibraryVersion().first
-                    editorConfig.sessionId = StatisticSession.getInstance()?.id ?: ""
 
-                    editorConfig.config = StatisticSession.getInstance()?.editor?.config
-
-                    editorConfig.apiKey = context.resources.getString(R.string.csApiKey)
-                    editorConfig.tId = "ru"
-                    //editorConfig.storyId = 5958
                     ugcInitData?.let {
 
                     }
-                    val configSt = JsonParser.getJson(editorConfig)
+                    val configSt = JsonParser.getJson(genEditorConfig(context))
                     val intent = Intent(
                         context,
                         UGCEditor::class.java
@@ -66,5 +60,21 @@ object UGCInAppStoryManager {
             }
         })
 
+    }
+
+    private fun genEditorConfig(context: Context): EditorConfig {
+        return EditorConfig().apply {
+            userId = InAppStoryManager.getInstance()?.userId
+            deviceId = Settings.Secure.getString(
+                context.contentResolver,
+                Settings.Secure.ANDROID_ID
+            )
+            lang = (Locale.getDefault().toLanguageTag()).lowercase()
+            appPackageId = context.packageName
+            sdkVersion = InAppStoryManager.getLibraryVersion().first
+            sessionId = StatisticSession.getInstance()?.id ?: ""
+            config = StatisticSession.getInstance()?.editor?.config
+            apiKey = context.resources.getString(R.string.csApiKey)
+        }
     }
 }

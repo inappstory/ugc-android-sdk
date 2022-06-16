@@ -1,6 +1,6 @@
 # UGC Editor
 
-A library with UGC Editor that works with [InAppStory library](https://github.com/inappstory/android-sdk/blob/main/README.md#getting-started.
+A library with UGC Editor that works with [InAppStory library](https://github.com/inappstory/android-sdk/blob/main/README.md#getting-started).
 
 
 ## Requirements

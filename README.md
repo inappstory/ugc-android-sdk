@@ -31,7 +31,7 @@ In the project `build.gradle` (app level) in the `dependencies` section add depe
 And then add dependency to UGC library:
 
 ```gradle
-	implementation("com.github.inappstory:ugc-android-sdk:$ugc_version") {
+  implementation("com.github.inappstory:ugc-android-sdk:$ugc_version") {
         transitive=true
         exclude group: 'com.github.inappstory', module: 'android-sdk' //exclude to prevent libraries overriding
   }

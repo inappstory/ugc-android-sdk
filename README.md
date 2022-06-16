@@ -13,28 +13,28 @@ The library is intended for Phone and Tablet projects (not intended for Android 
 
 Add jitpack maven repo to the root `build.gradle` in the `repositories` section :
 ```gradle
-	allprojects {
-	    repositories {
-	        ...
-	        maven { url 'https://jitpack.io' }
-	    }
+allprojects {
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
 	}
+}
 ```
 
 In the project `build.gradle` (app level) in the `dependencies` section add dependency to InAppStory library:
 ```gradle
-  implementation("com.github.inappstory:android-sdk:$inappstory_version") {
-        transitive=true
-  }
+implementation("com.github.inappstory:android-sdk:$inappstory_version") {
+	transitive=true
+}
 ```
 
 And then add dependency to UGC library:
 
 ```gradle
-  implementation("com.github.inappstory:ugc-android-sdk:$ugc_version") {
-        transitive=true
-        exclude group: 'com.github.inappstory', module: 'android-sdk' //exclude to prevent libraries overriding
-  }
+implementation("com.github.inappstory:ugc-android-sdk:$ugc_version") {
+	transitive=true
+	exclude group: 'com.github.inappstory', module: 'android-sdk' //exclude to prevent libraries overriding
+}
 ```
 
 ## ProGuard
@@ -64,7 +64,7 @@ For example:
 UGC item in `StoriesList` can be customized. To do this you need to set `csListUGCItemInterface`.
 
 ```js
-	public interface IStoriesListUGCItem {
-    		View getView(); // here you need to pass View - the appearance of the cell
-	}
+public interface IStoriesListUGCItem {
+    	View getView(); // here you need to pass View - the appearance of the cell
+}
 ```

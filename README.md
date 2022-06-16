@@ -45,26 +45,26 @@ You can use same Proguard rules as [InAppStory Proguard rules](https://github.co
 ## Initialization and Editor Usage
 
 1) [Initialize InAppStory SDK](https://github.com/inappstory/android-sdk#sdk-initialization)
-2) In [AppearanceManager](https://github.com/inappstory/android-sdk#sdk-initialization) (in global or for StoriesList) you need to set csHasUgc as true.
-3) For StoriesList set click callback from UGC item with setOnUGCItemClick(OnUGCItemClick callback). In callback you can open Editor with method from UGCInAppStoryManager.openEditor(Context ctx)
+2) In [AppearanceManager](https://github.com/inappstory/android-sdk#sdk-initialization) (in global or for `StoriesList`) you need to set `csHasUgc` as true.
+3) For `StoriesList` set click callback from UGC item with `setOnUGCItemClick(OnUGCItemClick callback)`. In callback you can open Editor with method from `UGCInAppStoryManager.openEditor(Context ctx)`
 
 For example:
 
 ```js 
 	appearanceManager.csHasUgc(true); 
-  storiesList.setAppearanceManager(appearanceManager)
-  storiesList.setOnUGCItemClick {
-      UGCInAppStoryManager.openEditor(context)
-  }
-  storiesList.loadStories()
+	storiesList.setAppearanceManager(appearanceManager)
+	storiesList.setOnUGCItemClick {
+		UGCInAppStoryManager.openEditor(context)
+  	}
+  	storiesList.loadStories()
 ```
 
 ## Customization
 
-UGC item in StoriesList can be customized. To do this you need to set csListUGCItemInterface.
+UGC item in `StoriesList` can be customized. To do this you need to set `csListUGCItemInterface`.
 
 ```js
-public interface IStoriesListUGCItem {
-    View getView(); // here you need to pass View - the appearance of the cell
-}
+	public interface IStoriesListUGCItem {
+    		View getView(); // here you need to pass View - the appearance of the cell
+	}
 ```

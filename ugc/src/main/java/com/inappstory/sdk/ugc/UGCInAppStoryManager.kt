@@ -6,15 +6,11 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.provider.Settings
 import androidx.core.util.Pair
-import com.inappstory.sdk.AppearanceManager
-import com.inappstory.sdk.BuildConfig
 import com.inappstory.sdk.InAppStoryManager
 import com.inappstory.sdk.network.JsonParser
 import com.inappstory.sdk.stories.api.models.StatisticSession
 import com.inappstory.sdk.stories.api.models.callbacks.OpenSessionCallback
 import com.inappstory.sdk.stories.ui.ScreensManager
-import com.inappstory.sdk.stories.ui.reader.StoriesActivity
-import com.inappstory.sdk.stories.ui.reader.StoriesFixedActivity
 import com.inappstory.sdk.stories.utils.SessionManager
 import com.inappstory.sdk.ugc.editor.EditorConfig
 import com.inappstory.sdk.ugc.editor.UGCEditor

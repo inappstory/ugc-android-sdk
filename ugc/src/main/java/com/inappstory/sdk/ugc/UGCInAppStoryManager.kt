@@ -5,7 +5,9 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
 import android.provider.Settings
+import androidx.core.util.Pair
 import com.inappstory.sdk.AppearanceManager
+import com.inappstory.sdk.BuildConfig
 import com.inappstory.sdk.InAppStoryManager
 import com.inappstory.sdk.network.JsonParser
 import com.inappstory.sdk.stories.api.models.StatisticSession
@@ -60,6 +62,10 @@ object UGCInAppStoryManager {
             }
         })
 
+    }
+
+    fun getLibraryVersion(): Pair<String?, Int?> {
+        return Pair(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
     }
 
     private fun genEditorConfig(context: Context): EditorConfig {

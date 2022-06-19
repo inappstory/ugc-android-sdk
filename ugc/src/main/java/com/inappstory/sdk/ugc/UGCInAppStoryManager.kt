@@ -74,7 +74,8 @@ object UGCInAppStoryManager {
             sdkVersion = InAppStoryManager.getLibraryVersion().first
             sessionId = StatisticSession.getInstance()?.id ?: ""
             config = StatisticSession.getInstance()?.editor?.config
-            apiKey = context.resources.getString(R.string.csApiKey)
+            apiKey = InAppStoryManager.getInstance().apiKey
+                ?: context.resources.getString(R.string.csApiKey)
         }
     }
 }

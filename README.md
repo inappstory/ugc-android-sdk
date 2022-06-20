@@ -61,7 +61,7 @@ For example:
 
 ## Customization
 
-UGC item in `StoriesList` can be customized. To do this you need to set `csListUGCItemInterface`.
+UGC item in `StoriesList` can be customized. To do this you need to set `csListUGCItemInterface` in AppearanceManager.
 
 ```js
 public interface IStoriesListUGCItem {

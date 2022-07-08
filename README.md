@@ -1,7 +1,6 @@
 # UGC Editor
 
-A library with UGC Editor that works with [InAppStory library](https://github.com/inappstory/android-sdk/blob/main/README.md#getting-started).
-
+A library with UGC Editor that works with [InAppStory library](https://github.com/inappstory/android-sdk/blob/main/README.md#getting-started). 
 
 ## Requirements
 
@@ -28,7 +27,7 @@ implementation("com.github.inappstory:android-sdk:$inappstory_version") {
 }
 ```
 
-And then add dependency to UGC library:
+And then add dependency to UGC library (Latest release version is 1.0.1):
 
 ```gradle
 implementation("com.github.inappstory:ugc-android-sdk:$ugc_version") {
@@ -61,7 +60,7 @@ For example:
 
 ## Customization
 
-UGC item in `StoriesList` can be customized. To do this you need to set `csListUGCItemInterface`.
+UGC item in `StoriesList` can be customized. To do this you need to set `csListUGCItemInterface` in `AppearanceManager`.
 
 ```js
 public interface IStoriesListUGCItem {

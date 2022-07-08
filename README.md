@@ -5,7 +5,7 @@ A library with UGC Editor that works with [InAppStory library](https://github.co
 ## Requirements
 
 The minimum SDK version is 21 (Android 5.0).
-
+The minimum InAppStory SDK version is 1.9.1
 The library is intended for Phone and Tablet projects (not intended for Android TV or Android Wear applications).
 
 ## Adding to the project

@@ -8,7 +8,7 @@ import android.provider.Settings
 import androidx.core.util.Pair
 import com.inappstory.sdk.InAppStoryManager
 import com.inappstory.sdk.network.JsonParser
-import com.inappstory.sdk.stories.api.models.StatisticSession
+import com.inappstory.sdk.stories.api.models.Session
 import com.inappstory.sdk.stories.api.models.callbacks.OpenSessionCallback
 import com.inappstory.sdk.stories.ui.ScreensManager
 import com.inappstory.sdk.stories.utils.SessionManager
@@ -48,7 +48,7 @@ object UGCInAppStoryManager {
                         UGCEditor::class.java
                     )
                     intent.putExtra("editorConfig", configSt)
-                    intent.putExtra("url", StatisticSession.getInstance()?.editor?.url ?: "")
+                    intent.putExtra("url", Session.getInstance()?.editor?.url ?: "")
                     context.startActivity(intent)
                 }
             }
@@ -74,8 +74,8 @@ object UGCInAppStoryManager {
             lang = (Locale.getDefault().toLanguageTag()).lowercase()
             appPackageId = context.packageName
             sdkVersion = InAppStoryManager.getLibraryVersion().first
-            sessionId = StatisticSession.getInstance()?.id ?: ""
-            config = StatisticSession.getInstance()?.editor?.config
+            sessionId = Session.getInstance()?.id ?: ""
+            config = Session.getInstance()?.editor?.config
             apiKey = InAppStoryManager.getInstance().apiKey
                 ?: context.resources.getString(R.string.csApiKey)
         }

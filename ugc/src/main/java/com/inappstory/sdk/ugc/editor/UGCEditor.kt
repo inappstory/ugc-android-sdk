@@ -18,10 +18,8 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.inappstory.sdk.AppearanceManager
-import com.inappstory.sdk.game.reader.GameJSInterface
 import com.inappstory.sdk.game.reader.GameLoadProgressBar
 import com.inappstory.sdk.network.jsapiclient.JsApiClient
-import com.inappstory.sdk.stories.api.models.StatisticSession
 import com.inappstory.sdk.stories.api.models.WebResource
 import com.inappstory.sdk.stories.ui.views.IASWebView
 import com.inappstory.sdk.stories.ui.views.IGameLoaderView

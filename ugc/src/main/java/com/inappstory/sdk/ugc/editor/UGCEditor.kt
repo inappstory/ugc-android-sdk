@@ -28,6 +28,7 @@ import com.inappstory.sdk.ugc.R
 import com.inappstory.sdk.ugc.UGCInAppStoryManager
 import com.inappstory.sdk.utils.ZipLoadCallback
 import com.inappstory.sdk.utils.ZipLoader
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -74,7 +75,7 @@ internal class UGCEditor : AppCompatActivity() {
     var handleBack = false
 
     fun updateUI() {
-        GlobalScope.launch(Dispatchers.Main) {
+        CoroutineScope(Dispatchers.Main).launch {
             closeButton.visibility = View.GONE
             loaderContainer.visibility = View.GONE
         }

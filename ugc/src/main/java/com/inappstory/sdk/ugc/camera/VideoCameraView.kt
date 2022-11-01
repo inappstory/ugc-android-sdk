@@ -18,6 +18,7 @@ class VideoCameraView @JvmOverloads constructor(
         return "mp4"
     }
 
+
     fun startRecording() {
         cameraIds.forEach { id->
             myCameras[id]?.let {

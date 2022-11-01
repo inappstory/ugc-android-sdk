@@ -14,6 +14,7 @@ import com.inappstory.sdk.stories.ui.ScreensManager
 import com.inappstory.sdk.stories.utils.SessionManager
 import com.inappstory.sdk.ugc.editor.EditorConfig
 import com.inappstory.sdk.ugc.editor.UGCEditor
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -30,7 +31,7 @@ object UGCInAppStoryManager {
         if (InAppStoryManager.getInstance() == null) return
         SessionManager.getInstance().useOrOpenSession(object : OpenSessionCallback {
             override fun onSuccess() {
-                GlobalScope.launch(Dispatchers.Main) {
+                CoroutineScope(Dispatchers.Main).launch {
                     ScreensManager.getInstance().ugcCloseCallback =
                         ScreensManager.CloseUgcReaderCallback {
                             if (currentEditor != null) {

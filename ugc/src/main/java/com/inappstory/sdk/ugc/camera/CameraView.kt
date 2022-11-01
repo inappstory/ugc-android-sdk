@@ -11,6 +11,7 @@ import android.view.TextureView
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.inappstory.sdk.stories.utils.Sizes
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -61,7 +62,7 @@ abstract class CameraView @JvmOverloads constructor(
 
 
     private fun startBackgroundThread() {
-        GlobalScope.launch(Dispatchers.Main) {
+        mainScope.launch {
             mBackgroundThread = HandlerThread("CameraBackground")
                 .apply {
                     start()
@@ -133,10 +134,12 @@ abstract class CameraView @JvmOverloads constructor(
         stopBackgroundThread()
     }
 
+    private val mainScope = CoroutineScope(Dispatchers.Main)
+
     open fun resumeCameraView() {
         startBackgroundThread()
 
-        GlobalScope.launch(Dispatchers.Main) {
+        mainScope.launch {
             mImageView!!.surfaceTexture?.let {
                 if (myCameras == null || myCameras.size == 0) return@launch
                 if (myCameras[back] != null) {
@@ -151,7 +154,7 @@ abstract class CameraView @JvmOverloads constructor(
     }
 
     fun surfaceTextureReady() {
-        GlobalScope.launch(Dispatchers.Main) {
+        mainScope.launch {
             mImageView!!.surfaceTexture?.let {
                 cameraIds.forEach { id ->
                     myCameras[id]?.setTexture(it)

@@ -6,9 +6,7 @@ import android.media.MediaCodec
 import android.media.MediaRecorder
 import android.os.Build
 import android.view.Surface
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 import java.lang.Exception
 import kotlin.math.min
@@ -122,19 +120,23 @@ class VideoCameraService(cameraManager: CameraManager, cameraID: String) :
         }
     }
 
+    private val recordCoroutineScope =
+        CoroutineScope(Dispatchers.IO)
+
+
     fun startRecording() {
-        GlobalScope.launch(Dispatchers.IO) {
+        recordCoroutineScope.launch {
             mMediaRecorder!!.start()
             recorderStarted = true
         }
+
     }
 
     fun stopRecording() {
-        GlobalScope.launch(Dispatchers.IO) {
+        recordCoroutineScope.launch {
             stopMediaRecorder()
         }
     }
-
 
     override fun preOpenCamera() {
         setUpMediaRecorder()
@@ -144,3 +146,4 @@ class VideoCameraService(cameraManager: CameraManager, cameraID: String) :
         stopMediaRecorder()
     }
 }
+

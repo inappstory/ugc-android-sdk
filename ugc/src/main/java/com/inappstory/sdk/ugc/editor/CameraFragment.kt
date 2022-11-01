@@ -19,10 +19,7 @@ import com.inappstory.sdk.ugc.R
 import com.inappstory.sdk.ugc.camera.*
 import com.inappstory.sdk.ugc.camera.ImageSaveCallback
 import com.inappstory.sdk.ugc.picker.FilePreviewsCache
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.util.*
 import kotlin.math.min
 
@@ -82,7 +79,7 @@ class CameraFragment : Fragment() {
                 videoStarted = !videoStarted
                 cameraButton?.stop()
                 it.pauseCameraView()
-                GlobalScope.launch(Dispatchers.IO) {
+                ioScope.launch {
                     delay(300)
                     stopVideo()
                 }
@@ -132,13 +129,13 @@ class CameraFragment : Fragment() {
             it.setOnClickListener {
                 if (videoStarted) {
                     cameraView?.pauseCameraView()
-                    GlobalScope.launch(Dispatchers.IO) {
+                    ioScope.launch {
                         delay(300)
                         stopVideo()
                         videoStarted = !videoStarted
                     }
                 } else {
-                    GlobalScope.launch(Dispatchers.IO) {
+                    ioScope.launch {
                         delay(300)
                         startVideo()
 
@@ -165,11 +162,14 @@ class CameraFragment : Fragment() {
     var lastIsBackCam = false
 
     private fun showPreview() {
-        GlobalScope.launch(Dispatchers.Main) {
+        mainScope.launch {
             recordLayout?.visibility = View.GONE
             previewLayout?.visibility = View.VISIBLE
         }
     }
+
+    private val mainScope = CoroutineScope(Dispatchers.Main)
+    private val ioScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private fun initPhotoScreen(view: View) {
         var videoStarted = false
@@ -195,11 +195,10 @@ class CameraFragment : Fragment() {
         }
         cameraButton = view.findViewById<CameraButton>(R.id.cameraButton).also {
             it.setOnClickListener {
-                GlobalScope.launch(Dispatchers.IO) {
+                ioScope.launch {
                     makePhoto(saveAction = {
-                        GlobalScope.launch(Dispatchers.Main) {
+                        mainScope.launch(Dispatchers.Main) {
                             cache.loadPreview(it, preview, false)
-                            //ImageLoader.getInstance().displayImage(it, -1, preview)
                         }
                     }, action = {
                         showPreview()
@@ -267,15 +266,29 @@ class CameraFragment : Fragment() {
     }
 
     private fun startVideo() {
-
+        delayedStopJob = startDelayedJob(delayTime = 30000) {
+            delayedStopJob = null
+            if (videoStarted) {
+                mainScope.launch {
+                    cameraButton?.stop()
+                }
+                ioScope.launch {
+                    cameraView?.pauseCameraView()
+                    delay(300)
+                    stopVideo()
+                    videoStarted = !videoStarted
+                }
+            }
+        }
         (cameraView!! as VideoCameraView).apply {
             setForceStopCallback(object : VideoForceStopCallback {
                 override fun onStop() {
                     if (isVideo && videoStarted) {
+                        clearDelayedJob()
                         videoStarted = !videoStarted
                         cameraButton?.stop()
                         cameraView?.pauseCameraView()
-                        GlobalScope.launch(Dispatchers.IO) {
+                        ioScope.launch {
                             delay(300)
                             (cameraView!! as VideoCameraView).stopRecording()
                             showPreview()
@@ -288,10 +301,18 @@ class CameraFragment : Fragment() {
         }
     }
 
+    private var delayedStopJob: Job? = null
+
+    private fun clearDelayedJob() {
+        delayedStopJob?.cancel()
+        delayedStopJob = null
+    }
+
     private fun stopVideo() {
+        clearDelayedJob()
         (cameraView!! as VideoCameraView).stopRecording()
         showPreview()
-        GlobalScope.launch(Dispatchers.IO) {
+        ioScope.launch {
             delay(300)
             videoPlayer?.loadVideo(cameraView!!.filePath!!)
         }
@@ -303,3 +324,9 @@ class CameraFragment : Fragment() {
         }
     }
 }
+
+fun startDelayedJob(delayTime: Long = 500, action: suspend () -> Unit) =
+    CoroutineScope(Dispatchers.Default).launch {
+        delay(delayTime)
+        action.invoke()
+    }

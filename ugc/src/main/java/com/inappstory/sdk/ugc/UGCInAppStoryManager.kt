@@ -19,13 +19,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.*
+import kotlin.collections.HashMap
 
 object UGCInAppStoryManager {
     internal var currentEditor: UGCEditor? = null
 
     fun openEditor(
         context: Context,
-        ugcInitData: UGCInitData? = null
+        ugcInitData: HashMap<String, Any?>? = null
 
     ) {
         if (InAppStoryManager.getInstance() == null) return

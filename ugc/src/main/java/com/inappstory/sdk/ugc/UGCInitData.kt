@@ -1,4 +1,3 @@
 package com.inappstory.sdk.ugc
 
-class UGCInitData {
-}
+data class UGCInitData(val payload: HashMap<String, Any?>)

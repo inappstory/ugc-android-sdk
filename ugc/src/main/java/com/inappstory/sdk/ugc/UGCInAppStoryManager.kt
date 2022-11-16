@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import androidx.core.util.Pair
 import com.inappstory.sdk.InAppStoryManager
 import com.inappstory.sdk.network.JsonParser
@@ -13,6 +14,7 @@ import com.inappstory.sdk.stories.api.models.callbacks.OpenSessionCallback
 import com.inappstory.sdk.stories.ui.ScreensManager
 import com.inappstory.sdk.stories.utils.SessionManager
 import com.inappstory.sdk.ugc.editor.EditorConfig
+import com.inappstory.sdk.ugc.editor.EmptyUGCEditorCallback
 import com.inappstory.sdk.ugc.editor.UGCEditor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,10 +26,11 @@ import kotlin.collections.HashMap
 object UGCInAppStoryManager {
     internal var currentEditor: UGCEditor? = null
 
+    var editorCallback: UGCEditorCallback = EmptyUGCEditorCallback()
+
     fun openEditor(
         context: Context,
         ugcInitData: HashMap<String, Any?>? = null
-
     ) {
         if (InAppStoryManager.getInstance() == null) return
         SessionManager.getInstance().useOrOpenSession(object : OpenSessionCallback {
@@ -40,11 +43,8 @@ object UGCInAppStoryManager {
                                 currentEditor = null
                             }
                         }
-
-                    ugcInitData?.let {
-
-                    }
-                    val configSt = JsonParser.getJson(genEditorConfig(context))
+                    val configSt = JsonParser.getJson(genEditorConfig(context, ugcInitData))
+                    Log.d("configSt", configSt)
                     val intent = Intent(
                         context,
                         UGCEditor::class.java
@@ -66,7 +66,11 @@ object UGCInAppStoryManager {
         return Pair(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
     }
 
-    private fun genEditorConfig(context: Context): EditorConfig {
+
+    private fun genEditorConfig(
+        context: Context,
+        ugcInitData: HashMap<String, Any?>? = null
+    ): EditorConfig {
         return EditorConfig().apply {
             userId = InAppStoryManager.getInstance()?.userId
             deviceId = Settings.Secure.getString(
@@ -80,6 +84,7 @@ object UGCInAppStoryManager {
             config = Session.getInstance()?.editor?.config
             apiKey = InAppStoryManager.getInstance().apiKey
                 ?: context.resources.getString(R.string.csApiKey)
+            storyPayload = ugcInitData
         }
     }
 }

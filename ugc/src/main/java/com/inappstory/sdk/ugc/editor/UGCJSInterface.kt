@@ -24,4 +24,11 @@ internal class UGCJSInterface(val editor: UGCEditor) {
     fun sendApiRequest(data: String?) {
         editor.sendApiRequest(data)
     }
+
+    @JavascriptInterface
+    fun editorEvent(event: String, payload: String) {
+        event.let {
+            editor.sendEditorEvent(it, payload)
+        }
+    }
 }

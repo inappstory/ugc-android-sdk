@@ -14,4 +14,5 @@ internal class EditorConfig {
     var storyId: Int? = null
     var title: String? = null
     var cover: String? = null
+    var storyPayload: HashMap<String, Any?>? = null
 }

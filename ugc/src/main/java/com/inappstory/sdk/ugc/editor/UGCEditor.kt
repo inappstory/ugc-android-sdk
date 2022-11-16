@@ -26,13 +26,11 @@ import com.inappstory.sdk.stories.ui.views.IASWebView
 import com.inappstory.sdk.stories.ui.views.IGameLoaderView
 import com.inappstory.sdk.stories.utils.Sizes
 import com.inappstory.sdk.ugc.R
-import com.inappstory.sdk.ugc.UGCEditorCallback
 import com.inappstory.sdk.ugc.UGCInAppStoryManager
 import com.inappstory.sdk.utils.ZipLoadCallback
 import com.inappstory.sdk.utils.ZipLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.ArrayList
@@ -54,7 +52,7 @@ internal class UGCEditor : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         UGCInAppStoryManager.currentEditor = this
         setContentView(R.layout.cs_activity_ugc)
-        UGCInAppStoryManager.editorCallback.editorWillShow()
+        UGCInAppStoryManager.editorCallback.editorEvent("editorWillShow");
         setViews()
         initWebView()
         config = intent.getStringExtra("editorConfig")
@@ -74,51 +72,7 @@ internal class UGCEditor : AppCompatActivity() {
 
 
     fun sendEditorEvent(event: String, payload: String?) {
-        when (event) {
-            EditorEventNames.SLIDE_ADD -> {
-                val jsonObject = JsonParser.fromJson(
-                    payload,
-                    SlideAddedEvent::class.java
-                )
-                UGCInAppStoryManager.editorCallback.slideAdded(
-                    slideIndex = jsonObject.slideIndex,
-                    totalSlides = jsonObject.totalSlides,
-                    ts = jsonObject.ts
-                )
-            }
-            EditorEventNames.SLIDE_REMOVE -> {
-                val jsonObject = JsonParser.fromJson(
-                    payload,
-                    SlideRemovedEvent::class.java
-                )
-                UGCInAppStoryManager.editorCallback.slideRemoved(
-                    slideIndex = jsonObject.slideIndex,
-                    totalSlides = jsonObject.totalSlides,
-                    ts = jsonObject.ts
-                )
-            }
-            EditorEventNames.STORY_PUBLISH -> {
-                val jsonObject = JsonParser.fromJson(
-                    payload,
-                    StoryPublishedSuccessEvent::class.java
-                )
-                UGCInAppStoryManager.editorCallback.storyPublishedSuccess(
-                    totalSlides = jsonObject.totalSlides,
-                    ts = jsonObject.ts
-                )
-            }
-            EditorEventNames.STORY_PUBLISH_FAIL -> {
-                val jsonObject = JsonParser.fromJson(
-                    payload,
-                    StoryPublishedFailEvent::class.java
-                )
-                UGCInAppStoryManager.editorCallback.storyPublishedFail(
-                    reason = jsonObject.reason,
-                    totalSlides = jsonObject.totalSlides,
-                    ts = jsonObject.ts
-                )
-            }
-        }
+        UGCInAppStoryManager.editorCallback.editorEvent(event, HashMap(JsonParser.toMap(payload)))
     }
 
     var config: String? = null
@@ -312,7 +266,7 @@ internal class UGCEditor : AppCompatActivity() {
     override fun onDestroy() {
         if (UGCInAppStoryManager.currentEditor === this)
             UGCInAppStoryManager.currentEditor = null
-        UGCInAppStoryManager.editorCallback.editorDidClose()
+        UGCInAppStoryManager.editorCallback.editorEvent("editorDidClose");
         super.onDestroy()
     }
 

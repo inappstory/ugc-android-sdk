@@ -69,3 +69,6 @@ public interface IStoriesListUGCItem {
     	View getView(); // here you need to pass View - the appearance of the cell
 }
 ```
+
+## UGC stories lists
+[Here you can read full guide, how to implement it](https://github.com/inappstory/android-sdk/blob/ugc_merge/docs/UgcStoriesList.md)

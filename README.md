@@ -11,7 +11,8 @@ Version's compapibility
 | UGC SDK version                  | InAppStory SDK version 		|
 |----------------------------------|------------------------------------|
 |   1.0.0 - 1.0.2                  | 1.9.1 - 1.11.1                     |
-|   1.0.4 - x                      | 1.12.0-rc2                         |
+|   1.0.4 	                       | 1.12.0-rc2                         |
+|   1.0.5 - x                      | 1.12.0-rc3                         |
 
 
 The library is intended for Phone and Tablet projects (not intended for Android TV or Android Wear applications).

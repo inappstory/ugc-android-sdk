@@ -5,6 +5,7 @@ import android.media.CamcorderProfile
 import android.media.MediaCodec
 import android.media.MediaRecorder
 import android.os.Build
+import android.util.Log
 import android.view.Surface
 import kotlinx.coroutines.*
 
@@ -108,13 +109,20 @@ class VideoCameraService(cameraManager: CameraManager, cameraID: String) :
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
             setAudioEncodingBitRate(min(profile.audioBitRate, 256000))
             setAudioSamplingRate(profile.audioSampleRate)
-            setMaxDuration(60000)
+            setMaxDuration(30000) //Limit video size to 30 sec
+            setMaxFileSize(30000000) //Limit video size to 30 mb
 
         }.also {
             it.setOnInfoListener { _, what, _ ->
-                if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
-                    //stopRecording()
-                    stopCallback?.onStop()
+                when (what) {
+                    MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED,
+                    MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED,
+                    MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_APPROACHING -> {
+                        stopCallback?.onStop()
+                    }
+                    else -> {
+                        Log.e("onInfoListener", "$what")
+                    }
                 }
             }
         }

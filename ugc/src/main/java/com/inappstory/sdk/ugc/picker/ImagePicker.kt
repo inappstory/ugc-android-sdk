@@ -24,4 +24,8 @@ internal class ImagePicker : FilePicker() {
         )
         return path
     }
+
+    override fun getFilter(): PickerFilter? {
+        return null
+    }
 }

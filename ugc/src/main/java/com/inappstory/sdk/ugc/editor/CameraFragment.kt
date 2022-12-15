@@ -266,7 +266,7 @@ class CameraFragment : Fragment() {
     }
 
     private fun startVideo() {
-        delayedStopJob = startDelayedJob(delayTime = 30000) {
+       /* delayedStopJob = startDelayedJob(delayTime = 130000) {
             delayedStopJob = null
             if (videoStarted) {
                 mainScope.launch {
@@ -279,12 +279,12 @@ class CameraFragment : Fragment() {
                     videoStarted = !videoStarted
                 }
             }
-        }
+        }*/
         (cameraView!! as VideoCameraView).apply {
             setForceStopCallback(object : VideoForceStopCallback {
                 override fun onStop() {
                     if (isVideo && videoStarted) {
-                        clearDelayedJob()
+                        //clearDelayedJob()
                         videoStarted = !videoStarted
                         cameraButton?.stop()
                         cameraView?.pauseCameraView()
@@ -304,12 +304,12 @@ class CameraFragment : Fragment() {
     private var delayedStopJob: Job? = null
 
     private fun clearDelayedJob() {
-        delayedStopJob?.cancel()
-        delayedStopJob = null
+      //  delayedStopJob?.cancel()
+      //  delayedStopJob = null
     }
 
     private fun stopVideo() {
-        clearDelayedJob()
+        //clearDelayedJob()
         (cameraView!! as VideoCameraView).stopRecording()
         showPreview()
         ioScope.launch {

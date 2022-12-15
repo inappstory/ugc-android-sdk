@@ -25,4 +25,17 @@ internal class VideoPicker : FilePicker() {
         )
         return path
     }
+
+    override fun getFilter(): PickerFilter? {
+        val lengthLimit = 30000
+        val sizeLimit = 30000000
+        return PickerFilter(
+            selection = "${
+                MediaStore.MediaColumns.SIZE
+            } <= ? AND ${
+                MediaStore.Video.VideoColumns.DURATION
+            } <= ?",
+            selectionArgs = arrayOf("$sizeLimit", "$lengthLimit")
+        )
+    }
 }

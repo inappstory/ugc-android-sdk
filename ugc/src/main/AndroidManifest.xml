@@ -11,6 +11,7 @@
     <uses-feature android:name="android.hardware.camera" />
 
     <application
+        android:requestLegacyExternalStorage="true"
         android:forceDarkAllowed="true"
         android:hardwareAccelerated="true"
         android:largeHeap="true"

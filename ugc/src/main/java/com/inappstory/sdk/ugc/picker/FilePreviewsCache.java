@@ -258,7 +258,7 @@ public class FilePreviewsCache {
             return rotateImageIfRequired(bitmap, f.getAbsolutePath());
             //
         } catch (Exception ignored) {
-
+            ignored.printStackTrace();
         }
         return null;
     }

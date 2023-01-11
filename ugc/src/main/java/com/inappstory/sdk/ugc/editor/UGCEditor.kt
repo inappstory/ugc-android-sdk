@@ -43,13 +43,10 @@ internal class UGCEditor : AppCompatActivity() {
     private lateinit var webViewContainer: View
     private lateinit var loaderContainer: RelativeLayout
     private lateinit var loaderView: IGameLoaderView
-    private lateinit var blackTop: View
-    private lateinit var blackBottom: View
     private lateinit var baseContainer: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.e("UGC_Lifecycle", "onCreate ${savedInstanceState != null}")
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         UGCInAppStoryManager.currentEditor = this
         setContentView(R.layout.cs_activity_ugc)
@@ -63,23 +60,19 @@ internal class UGCEditor : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        Log.e("UGC_Lifecycle", "onSaveInstanceState $outState")
     }
-    
+
 
     override fun onRestart() {
         super.onRestart()
-        Log.e("UGC_Lifecycle", "onRestart")
     }
 
     override fun onStart() {
         super.onStart()
-        Log.e("UGC_Lifecycle", "onStart")
     }
 
     override fun onStop() {
         super.onStop()
-        Log.e("UGC_Lifecycle", "onStop")
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -124,8 +117,6 @@ internal class UGCEditor : AppCompatActivity() {
         loader = findViewById(R.id.loader)
         baseContainer = findViewById(R.id.draggable_frame)
         loaderContainer = findViewById(R.id.loaderContainer)
-        blackTop = findViewById(R.id.blackTop)
-        blackBottom = findViewById(R.id.blackBottom)
         loaderView = if (AppearanceManager.getCommonInstance().csGameLoaderView() == null) {
             GameLoadProgressBar(
                 this@UGCEditor,
@@ -142,13 +133,6 @@ internal class UGCEditor : AppCompatActivity() {
         closeButton.setOnClickListener { close() }
         webViewContainer = findViewById(R.id.webViewContainer)
         if (!Sizes.isTablet()) {
-            val screenSize = Sizes.getScreenSize(this@UGCEditor)
-            val lp = blackBottom.layoutParams as LinearLayout.LayoutParams
-            val realProps = screenSize.y / screenSize.x.toFloat()
-            val sn = 1.85f
-            if (realProps > sn) {
-                lp.height = (screenSize.y - screenSize.x * sn).toInt() / 2
-            }
             if (Build.VERSION.SDK_INT >= 28) {
                 Handler(mainLooper).post {
                     if (window != null && window.decorView.rootWindowInsets != null) {
@@ -156,7 +140,7 @@ internal class UGCEditor : AppCompatActivity() {
                         if (cutout != null) {
                             val lp1 =
                                 webViewContainer.layoutParams as LinearLayout.LayoutParams
-                            lp1.topMargin += max(cutout.safeInsetTop, 0)
+                            lp1.topMargin = max(cutout.safeInsetTop, 0)
                             webViewContainer.layoutParams = lp1
                         }
                     }
@@ -295,6 +279,7 @@ internal class UGCEditor : AppCompatActivity() {
             UGCInAppStoryManager.currentEditor = null
         UGCInAppStoryManager.editorCallback.editorEvent("editorDidClose");
         super.onDestroy()
+        closeCallback?.invoke()
     }
 
     var callback: ZipLoadCallback = object : ZipLoadCallback {
@@ -350,7 +335,10 @@ internal class UGCEditor : AppCompatActivity() {
         }
     }
 
-    fun close() {
+    private var closeCallback: (() -> Unit) = { }
+
+    fun close(closeCallback: (() -> Unit) = {}) {
+        this.closeCallback = closeCallback
         if (ugcLoaded) {
             webView.evaluateJavascript(
                 "window.editorApi.close();", null

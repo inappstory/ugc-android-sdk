@@ -16,10 +16,7 @@ import com.inappstory.sdk.stories.utils.SessionManager
 import com.inappstory.sdk.ugc.editor.EditorConfig
 import com.inappstory.sdk.ugc.editor.EmptyUGCEditorCallback
 import com.inappstory.sdk.ugc.editor.UGCEditor
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -28,6 +25,10 @@ object UGCInAppStoryManager {
 
     var editorCallback: UGCEditorCallback = EmptyUGCEditorCallback()
 
+    fun closeEditor(closeCallback: (() -> Unit) = {}) {
+        currentEditor?.close(closeCallback)
+    }
+
     fun openEditor(
         context: Context,
         ugcInitData: HashMap<String, Any?>? = null
@@ -35,16 +36,17 @@ object UGCInAppStoryManager {
         if (InAppStoryManager.getInstance() == null) return
         SessionManager.getInstance().useOrOpenSession(object : OpenSessionCallback {
             override fun onSuccess() {
-                CoroutineScope(Dispatchers.Main).launch {
-                    ScreensManager.getInstance().ugcCloseCallback =
-                        ScreensManager.CloseUgcReaderCallback {
+                ScreensManager.getInstance().ugcCloseCallback =
+                    ScreensManager.CloseUgcReaderCallback {
+                        CoroutineScope(Dispatchers.Main).launch {
                             if (currentEditor != null) {
                                 currentEditor?.close()
                                 currentEditor = null
                             }
                         }
-                    val configSt = JsonParser.getJson(genEditorConfig(context, ugcInitData))
-                    Log.d("configSt", configSt)
+                    }
+                val configSt = JsonParser.getJson(genEditorConfig(context, ugcInitData))
+                CoroutineScope(Dispatchers.Main).launch {
                     val intent = Intent(
                         context,
                         UGCEditor::class.java

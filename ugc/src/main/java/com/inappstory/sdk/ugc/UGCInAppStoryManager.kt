@@ -26,7 +26,10 @@ object UGCInAppStoryManager {
     var editorCallback: UGCEditorCallback = EmptyUGCEditorCallback()
 
     fun closeEditor(closeCallback: (() -> Unit) = {}) {
-        currentEditor?.close(closeCallback)
+        CoroutineScope(Dispatchers.Main).launch {
+            currentEditor?.close(closeCallback)
+            currentEditor = null
+        }
     }
 
     fun openEditor(
@@ -39,10 +42,8 @@ object UGCInAppStoryManager {
                 ScreensManager.getInstance().ugcCloseCallback =
                     ScreensManager.CloseUgcReaderCallback {
                         CoroutineScope(Dispatchers.Main).launch {
-                            if (currentEditor != null) {
-                                currentEditor?.close()
-                                currentEditor = null
-                            }
+                            currentEditor?.close()
+                            currentEditor = null
                         }
                     }
                 val configSt = JsonParser.getJson(genEditorConfig(context, ugcInitData))

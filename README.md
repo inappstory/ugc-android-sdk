@@ -11,8 +11,9 @@ Version's compapibility
 | UGC SDK version                  | InAppStory SDK version 		|
 |----------------------------------|------------------------------------|
 |   1.0.0 - 1.0.2                  | 1.9.1 - 1.11.1                     |
-|   1.0.4 	                       | 1.12.0-rc2                         |
-|   1.0.5 - x                      | 1.12.0-rc3                         |
+|   1.0.4 	                   | 1.12.0-rc2                         |
+|   1.0.5                          | 1.12.0-rc3+                        |
+|   1.0.6                          | 1.12.0-rc7                         |
 
 
 The library is intended for Phone and Tablet projects (not intended for Android TV or Android Wear applications).
@@ -36,7 +37,7 @@ implementation("com.github.inappstory:android-sdk:$inappstory_version") {
 }
 ```
 
-And then add dependency to UGC library (Latest release version is 1.0.4):
+And then add dependency to UGC library (Latest release version is 1.0.6):
 
 ```gradle
 implementation("com.github.inappstory:ugc-android-sdk:$ugc_version") {
@@ -65,6 +66,14 @@ For example:
 		UGCInAppStoryManager.openEditor(context)
   	}
   	storiesList.loadStories()
+```
+If you want to force close editor, you can use method `UGCInAppStoryManager.closeEditor(closeCallback: () -> Unit)` //closeCallback has empty body by default
+For example:
+
+```js 
+	UGCInAppStoryManager.closeEditor { 
+		Log.e(TAG, "Close editor") 
+	}
 ```
 
 ## Customization

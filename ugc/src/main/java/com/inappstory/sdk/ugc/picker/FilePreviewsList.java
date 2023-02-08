@@ -33,14 +33,18 @@ public class FilePreviewsList extends RecyclerView {
     }
 
     public void load(boolean isVideo,
+                     boolean hasFileAccess,
                      List<String> mimeTypes,
                      FileClickCallback clickCallback,
-                     OpenCameraClickCallback cameraCallback) {
+                     OpenCameraClickCallback cameraCallback,
+                     NoAccessCallback noAccessCallback) {
         FilePreviewsAdapter adapter = new FilePreviewsAdapter(getContext(),
                 isVideo,
+                hasFileAccess,
                 mimeTypes,
                 clickCallback,
-                cameraCallback
+                cameraCallback,
+                noAccessCallback
         );
         adapter.setHasStableIds(true);
         setAdapter(adapter);

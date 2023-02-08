@@ -9,6 +9,7 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import com.inappstory.sdk.ugc.R
 import com.inappstory.sdk.ugc.picker.FilePicker
+import java.io.File
 import java.util.*
 
 
@@ -41,7 +42,6 @@ internal class FileChooseActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.cs_file_choose_activity)
         val isVideo = intent.getStringExtra("type").equals("video")
-        val acceptTypes = arrayListOf<String>()
         askPermissions()
         if (savedInstanceState == null) {
             val bundle = Bundle()
@@ -51,19 +51,29 @@ internal class FileChooseActivity : AppCompatActivity() {
                 intent.getStringArrayListExtra("acceptTypes")
             )
             openFilePickerScreen(bundle)
-        }/* else {
-            currentFragment =
-                supportFragmentManager.findFragmentById(R.id.fragments_layout)
-        }*/
+        }
     }
 
-    fun openFragment(fragment: Fragment, tag: String) {
+    private fun openFragment(fragment: Fragment, tag: String) {
         try {
             val fragmentManager =
                 supportFragmentManager
             val t = fragmentManager.beginTransaction()
-                .replace(R.id.fragments_layout, fragment)
-            t.addToBackStack(tag)
+                .replace(R.id.fragments_layout, fragment, tag)
+            t.addToBackStack(null)
+            t.commitAllowingStateLoss()
+        } catch (e: IllegalStateException) {
+            finish()
+        }
+    }
+
+    private fun addFragment(fragment: Fragment, tag: String) {
+        try {
+            val fragmentManager =
+                supportFragmentManager
+            val t = fragmentManager.beginTransaction()
+                .add(R.id.fragments_layout, fragment, tag)
+            t.addToBackStack(null)
             t.commitAllowingStateLoss()
         } catch (e: IllegalStateException) {
             finish()
@@ -91,11 +101,23 @@ internal class FileChooseActivity : AppCompatActivity() {
         }
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        val fragment = supportFragmentManager.findFragmentByTag("UGC_FILE_CHOOSE")
+        if (fragment is FilePickerFragment) {
+            fragment.requestPermissionsResult(requestCode, permissions, grantResults)
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
     fun openFileCameraScreen(bundle: Bundle) {
         currentFragment = CameraFragment().apply {
             bundle.putString("fileName", UUID.randomUUID().toString())
             arguments = bundle
-            openFragment(this, "UGC_CAMERA")
+            addFragment(this, "UGC_CAMERA")
         }
     }
 
@@ -103,7 +125,7 @@ internal class FileChooseActivity : AppCompatActivity() {
     fun openPreviewScreen(bundle: Bundle) {
         currentFragment = VideoPreviewFragment().apply {
             arguments = bundle
-            openFragment(this, "UGC_PREVIEW")
+            addFragment(this, "UGC_PREVIEW")
         }
     }
 }

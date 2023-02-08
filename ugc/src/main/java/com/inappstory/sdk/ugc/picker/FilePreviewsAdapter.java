@@ -1,17 +1,14 @@
 package com.inappstory.sdk.ugc.picker;
 
 import android.content.Context;
-import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.inappstory.sdk.AppearanceManager;
 import com.inappstory.sdk.stories.utils.Sizes;
 import com.inappstory.sdk.ugc.R;
 
@@ -25,21 +22,29 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
     FilePreviewsCache cache = new FilePreviewsCache();
     OpenCameraClickCallback cameraCallback;
     FileClickCallback clickCallback;
+    NoAccessCallback noAccessCallback;
+    boolean hasFileAccess;
 
     public FilePreviewsAdapter(Context context,
                                boolean isVideo,
+                               boolean hasFileAccess,
                                List<String> mimeTypes,
                                FileClickCallback clickCallback,
-                               OpenCameraClickCallback cameraCallback) {
+                               OpenCameraClickCallback cameraCallback,
+                               NoAccessCallback noAccessCallback) {
+        this.noAccessCallback = noAccessCallback;
         this.cameraCallback = cameraCallback;
         this.clickCallback = clickCallback;
         this.isVideo = isVideo;
+        this.hasFileAccess = hasFileAccess;
         if (isVideo) {
             this.picker = new VideoPicker();
         } else {
             this.picker = new ImagePicker();
         }
-        imagePath.addAll(picker.getImagesPath(context, mimeTypes));
+        if (hasFileAccess) {
+            imagePath.addAll(picker.getImagesPath(context, mimeTypes));
+        }
     }
 
 
@@ -62,6 +67,9 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
         if (viewType == -1) {
             v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cs_file_camera_cell,
                     parent, false);
+        } else if (viewType == -2) {
+            v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cs_file_no_access_cell,
+                    parent, false);
         } else {
             v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cs_file_picker_cell,
                     parent, false);
@@ -80,6 +88,7 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
     @Override
     public int getItemViewType(int position) {
         if (position == 0) return -1;
+        if (!hasFileAccess && position == 1) return -2;
         return position;
     }
 
@@ -95,11 +104,17 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
     @Override
     public void onBindViewHolder(@NonNull FilePreviewsHolder holder, int position) {
         if (position != 0) {
-            holder.itemView.setSelected(position == activePos);
-            ImageView iv = holder.itemView.findViewById(R.id.image);
-            if (iv != null) {
-                holder.path = imagePath.get(position - 1);
-                cache.loadPreview(imagePath.get(position - 1), iv, isVideo);
+            if (hasFileAccess) {
+                holder.itemView.setSelected(position == activePos);
+                ImageView iv = holder.itemView.findViewById(R.id.image);
+                if (iv != null) {
+                    holder.path = imagePath.get(position - 1);
+                    cache.loadPreview(imagePath.get(position - 1), iv, isVideo);
+                }
+            } else {
+                holder.itemView.setOnClickListener(v -> {
+                    noAccessCallback.click();
+                });
             }
         } else {
             holder.itemView.setOnClickListener(v -> {
@@ -114,6 +129,6 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
 
     @Override
     public int getItemCount() {
-        return imagePath.size() + 1;
+        return (hasFileAccess ? imagePath.size() : 1) + 1;
     }
 }

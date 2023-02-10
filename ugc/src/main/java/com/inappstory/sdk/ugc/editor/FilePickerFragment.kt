@@ -22,11 +22,15 @@ import com.inappstory.sdk.ugc.picker.OpenCameraClickCallback
 
 
 internal class FilePickerFragment : Fragment() {
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+
         return inflater.inflate(R.layout.cs_file_picker_fragment, null)
     }
 
@@ -105,11 +109,21 @@ internal class FilePickerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        requireArguments().getBoolean("isVideo", false)
         uploadButton = view.findViewById(R.id.upload)
         previews = view.findViewById(R.id.previews)
-        isVideo = requireArguments().getBoolean("isVideo", false)
-        acceptTypes = requireArguments().getStringArrayList("acceptTypes")
+        arguments?.apply {
+            val messageNames = getStringArray("messageNames")
+            val messageValues = getStringArray("messages")
+            if (messageNames != null && messageValues != null) {
+                messages.putAll(messageNames.zip(messageValues).toMap())
+            }
+            isVideo = getBoolean("isVideo", false)
+            acceptTypes = getStringArrayList("acceptTypes")
+            messages["button_no_gallery_access"]?.let {
+                galleryAccessText = it
+            }
+        }
+
         if (acceptTypes == null) {
             activity?.onBackPressed()
             return
@@ -126,12 +140,23 @@ internal class FilePickerFragment : Fragment() {
         checkStoragePermissions()
     }
 
+    private var galleryAccessText = "Tap to allow access to your Gallery"
+    private val messages = hashMapOf<String, String>()
+    private val storageDefault =
+        "You need storage access to load photos and videos. Tap Settings > Permissions and turn \'Files and media\' on"
+    private val photoDefault =
+        "You need camera access to make photos. Tap Settings > Permissions and turn 'Camera' on"
+    private val videoDefault =
+        "You need camera and microphone access to make videos. Tap Settings > Permissions and turn 'Camera' and 'Microphone' on"
+
     fun requestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
         var allGranted = true;
+        val positiveText = messages["dialog_button_settings"]
+        val negativeText = messages["dialog_button_not_now"]
         if (requestCode == STORAGE_PERMISSIONS_RESULT
             || requestCode == CAMERA_PERMISSIONS_RESULT_PHOTO
             || requestCode == CAMERA_PERMISSIONS_RESULT_VIDEO
@@ -147,7 +172,13 @@ internal class FilePickerFragment : Fragment() {
             when (requestCode) {
                 STORAGE_PERMISSIONS_RESULT -> {
                     if (!allGranted)
-                        openSettingsDialog("You need storage access to load photos and videos. Tap Settings > Permissions and turn \'Files and media\' on") {
+                        openSettingsDialog(
+                            text = messages.getOrElse(
+                                "dialog_storage_permission_warning",
+                                defaultValue = { storageDefault }),
+                            positiveText = positiveText,
+                            negativeText = negativeText,
+                        ) {
                             loadPreviews(false)
                         }
                     else
@@ -155,13 +186,25 @@ internal class FilePickerFragment : Fragment() {
                 }
                 CAMERA_PERMISSIONS_RESULT_PHOTO -> {
                     if (!allGranted)
-                        openSettingsDialog("You need camera access to make photos. Tap Settings > Permissions and turn \'Camera\' on")
+                        openSettingsDialog(
+                            text = messages.getOrElse(
+                                "dialog_photo_permissions_warning",
+                                defaultValue = { photoDefault }),
+                            positiveText = positiveText,
+                            negativeText = negativeText,
+                        )
                     else
                         openCameraScreen(false)
                 }
                 CAMERA_PERMISSIONS_RESULT_VIDEO -> {
                     if (!allGranted)
-                        openSettingsDialog("You need camera and microphone access to make videos. Tap Settings > Permissions and turn \'Camera\' and \'Microphone\' on")
+                        openSettingsDialog(
+                            text = messages.getOrElse(
+                                "dialog_video_permissions_warning",
+                                defaultValue = { videoDefault }),
+                            positiveText = positiveText,
+                            negativeText = negativeText,
+                        )
                     else
                         openCameraScreen(true)
                 }
@@ -190,21 +233,28 @@ internal class FilePickerFragment : Fragment() {
             override fun click() {
                 checkStoragePermissions()
             }
-        })
+        },
+            galleryAccessText
+        )
     }
 
-    private fun openSettingsDialog(text: String, negativeCallback: () -> Unit = {}) {
+    private fun openSettingsDialog(
+        text: String,
+        positiveText: String? = null,
+        negativeText: String? = null,
+        negativeCallback: () -> Unit = {},
+    ) {
         if (dialogShown) return
         activity?.apply {
             AlertDialog.Builder(this)
                 .setMessage(text)
                 .setCancelable(true)
-                .setPositiveButton("Settings") { dialog, which ->
+                .setPositiveButton(positiveText ?: "Settings") { dialog, which ->
                     dialog?.dismiss()
                     dialogShown = false
                     openSettingsScreen()
                 }
-                .setNegativeButton("Not now") { dialog, which ->
+                .setNegativeButton(negativeText ?: "Not now") { dialog, which ->
                     dialog?.dismiss()
                     dialogShown = false
                     negativeCallback.invoke()

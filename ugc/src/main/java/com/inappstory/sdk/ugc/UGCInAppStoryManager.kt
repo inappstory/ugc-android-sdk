@@ -47,11 +47,17 @@ object UGCInAppStoryManager {
                         }
                     }
                 val configSt = JsonParser.getJson(genEditorConfig(context, ugcInitData))
+                val messages = Session.getInstance()?.editor?.messages
                 CoroutineScope(Dispatchers.Main).launch {
                     val intent = Intent(
                         context,
                         UGCEditor::class.java
                     )
+                    messages?.let {
+                        val (keys,values) = messages.toList().unzip()
+                        intent.putExtra("messageNames", keys.toTypedArray())
+                        intent.putExtra("messages", values.toTypedArray())
+                    }
                     intent.putExtra("editorConfig", configSt)
                     intent.putExtra("url", Session.getInstance()?.editor?.url ?: "")
                     context.startActivity(intent)

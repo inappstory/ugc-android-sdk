@@ -42,6 +42,7 @@ internal class FileChooseActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.cs_file_choose_activity)
         val isVideo = intent.getStringExtra("type").equals("video")
+
         askPermissions()
         if (savedInstanceState == null) {
             val bundle = Bundle()
@@ -49,6 +50,15 @@ internal class FileChooseActivity : AppCompatActivity() {
             bundle.putStringArrayList(
                 "acceptTypes",
                 intent.getStringArrayListExtra("acceptTypes")
+
+            )
+            bundle.putStringArray(
+                "messageNames",
+                intent.getStringArrayExtra("messageNames")
+            )
+            bundle.putStringArray(
+                "messages",
+                intent.getStringArrayExtra("messages")
             )
             openFilePickerScreen(bundle)
         }

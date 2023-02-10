@@ -216,6 +216,9 @@ internal class UGCEditor : AppCompatActivity() {
                 this@UGCEditor
             ), "Android"
         )
+
+        val messageNames = intent.getStringArrayExtra("messageNames")
+        val messages = intent.getStringArrayExtra("messages")
         webView.webChromeClient = object : WebChromeClient() {
             var init = false
             override fun onShowFileChooser(
@@ -235,6 +238,8 @@ internal class UGCEditor : AppCompatActivity() {
                         "acceptTypes",
                         filteredTypes.second
                     )
+                    intent.putExtra("messageNames", messageNames)
+                    intent.putExtra("messages", messages)
                     intent.putExtra("type", filteredTypes.first)
                     startActivityForResult(intent, CHOOSE_FILE_REQUEST_CODE)
                 }

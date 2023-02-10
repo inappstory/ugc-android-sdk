@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,6 +25,7 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
     FileClickCallback clickCallback;
     NoAccessCallback noAccessCallback;
     boolean hasFileAccess;
+    String galleryAccessText;
 
     public FilePreviewsAdapter(Context context,
                                boolean isVideo,
@@ -31,8 +33,10 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
                                List<String> mimeTypes,
                                FileClickCallback clickCallback,
                                OpenCameraClickCallback cameraCallback,
-                               NoAccessCallback noAccessCallback) {
+                               NoAccessCallback noAccessCallback,
+                               String galleryAccessText) {
         this.noAccessCallback = noAccessCallback;
+        this.galleryAccessText = galleryAccessText;
         this.cameraCallback = cameraCallback;
         this.clickCallback = clickCallback;
         this.isVideo = isVideo;
@@ -112,6 +116,8 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
                     cache.loadPreview(imagePath.get(position - 1), iv, isVideo);
                 }
             } else {
+                TextView text = holder.itemView.findViewById(R.id.gallery_access_text);
+                text.setText(galleryAccessText);
                 holder.itemView.setOnClickListener(v -> {
                     noAccessCallback.click();
                 });

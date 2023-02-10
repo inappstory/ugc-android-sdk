@@ -20,11 +20,11 @@
             android:layout_below="@id/no_access_image"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:id="@+id/gallery_access_text"
             android:gravity="center_horizontal"
             android:textSize="10sp"
             android:textColor="@color/white"
-            android:paddingTop="8dp"
-            android:text="Tap to allow access to your Gallery"/>
+            android:paddingTop="8dp"/>
     </LinearLayout>
 
 </RelativeLayout>

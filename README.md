@@ -38,7 +38,7 @@ implementation("com.github.inappstory:android-sdk:$inappstory_version") {
 }
 ```
 
-And then add dependency to UGC library (Latest release version is 1.0.6):
+And then add dependency to UGC library (Latest release version is 1.0.7):
 
 ```gradle
 implementation("com.github.inappstory:ugc-android-sdk:$ugc_version") {

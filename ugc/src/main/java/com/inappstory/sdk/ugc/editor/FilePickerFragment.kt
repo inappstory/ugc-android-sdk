@@ -167,7 +167,7 @@ internal class FilePickerFragment : Fragment() {
                         allGranted = false;
                 }
             } else {
-                allGranted = false;
+                return;
             }
             when (requestCode) {
                 STORAGE_PERMISSIONS_RESULT -> {

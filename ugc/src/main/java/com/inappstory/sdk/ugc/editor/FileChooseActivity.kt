@@ -43,7 +43,7 @@ internal class FileChooseActivity : AppCompatActivity() {
         setContentView(R.layout.cs_file_choose_activity)
         val isVideo = intent.getStringExtra("type").equals("video")
 
-        askPermissions()
+       // askPermissions()
         if (savedInstanceState == null) {
             val bundle = Bundle()
             bundle.putBoolean("isVideo", isVideo)

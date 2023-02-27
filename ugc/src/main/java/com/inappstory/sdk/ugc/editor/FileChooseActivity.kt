@@ -43,7 +43,7 @@ internal class FileChooseActivity : AppCompatActivity() {
         setContentView(R.layout.cs_file_choose_activity)
         val isVideo = intent.getStringExtra("type").equals("video")
 
-       // askPermissions()
+        // askPermissions()
         if (savedInstanceState == null) {
             val bundle = Bundle()
             bundle.putBoolean("isVideo", isVideo)
@@ -55,6 +55,10 @@ internal class FileChooseActivity : AppCompatActivity() {
             bundle.putStringArray(
                 "messageNames",
                 intent.getStringArrayExtra("messageNames")
+            )
+            bundle.putBoolean(
+                "allowMultiple",
+                intent.getBooleanExtra("allowMultiple", false)
             )
             bundle.putStringArray(
                 "messages",
@@ -99,7 +103,14 @@ internal class FileChooseActivity : AppCompatActivity() {
 
     fun sendResult(filePath: String) {
         val intent = Intent()
-        intent.putExtra("file", filePath)
+        intent.putExtra("files", arrayOf(filePath))
+        setResult(RESULT_OK, intent)
+        finish()
+    }
+
+    fun sendResultMultiple(files: Array<String>) {
+        val intent = Intent()
+        intent.putExtra("files", files)
         setResult(RESULT_OK, intent)
         finish()
     }

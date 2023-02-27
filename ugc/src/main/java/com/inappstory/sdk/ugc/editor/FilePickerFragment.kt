@@ -39,7 +39,7 @@ internal class FilePickerFragment : Fragment() {
 
     var isVideo = false
     var acceptTypes: ArrayList<String>? = null
-    var selectedFile: String? = null
+    val selectedFiles = hashSetOf<String>()
 
     private val STORAGE_PERMISSIONS_RESULT = 888
     private val CAMERA_PERMISSIONS_RESULT_PHOTO = 889
@@ -129,8 +129,8 @@ internal class FilePickerFragment : Fragment() {
             return
         }
         uploadButton?.setOnClickListener {
-            if (activity is FileChooseActivity && selectedFile != null) {
-                (activity as FileChooseActivity).sendResult(selectedFile!!)
+            if (activity is FileChooseActivity && selectedFiles.isNotEmpty()) {
+                (activity as FileChooseActivity).sendResultMultiple(selectedFiles.toTypedArray())
             }
         }
     }
@@ -214,26 +214,35 @@ internal class FilePickerFragment : Fragment() {
 
     private fun loadPreviews(hasFileAccess: Boolean) {
         loaded = hasFileAccess
-        previews?.load(isVideo, hasFileAccess, acceptTypes, object : FileClickCallback {
-            override fun select(filePath: String) {
-                selectedFile = filePath
-                uploadButton?.show()
-            }
+        val allowMultiple = arguments?.getBoolean("allowMultiple") ?: false
+        previews?.load(isVideo,
+            hasFileAccess,
+            allowMultiple,
+            acceptTypes,
+            object : FileClickCallback {
+                override fun select(filePath: String) {
+                    selectedFiles.add(filePath)
+                    //selectedFile = filePath
+                    uploadButton?.show()
+                }
 
-            override fun unselect() {
-                selectedFile = null
-                uploadButton?.hide()
-            }
-        }, object : OpenCameraClickCallback {
-            override fun open(isVideo: Boolean) {
-                checkCameraPermissions(isVideo)
-                //openCameraScreen(isVideo)
-            }
-        }, object : NoAccessCallback {
-            override fun click() {
-                checkStoragePermissions()
-            }
-        },
+                override fun unselect(filePath: String) {
+                    selectedFiles.remove(filePath)
+                    if (selectedFiles.isEmpty())
+                        uploadButton?.hide()
+                }
+            },
+            object : OpenCameraClickCallback {
+                override fun open(isVideo: Boolean) {
+                    checkCameraPermissions(isVideo)
+                    //openCameraScreen(isVideo)
+                }
+            },
+            object : NoAccessCallback {
+                override fun click() {
+                    checkStoragePermissions()
+                }
+            },
             galleryAccessText
         )
     }

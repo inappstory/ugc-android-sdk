@@ -1,6 +1,7 @@
 package com.inappstory.sdk.ugc.picker;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +15,10 @@ import com.inappstory.sdk.stories.utils.Sizes;
 import com.inappstory.sdk.ugc.R;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
     FilePicker picker;
@@ -25,11 +29,13 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
     FileClickCallback clickCallback;
     NoAccessCallback noAccessCallback;
     boolean hasFileAccess;
+    boolean allowMultipleSelection;
     String galleryAccessText;
 
     public FilePreviewsAdapter(Context context,
                                boolean isVideo,
                                boolean hasFileAccess,
+                               boolean allowMultipleSelection,
                                List<String> mimeTypes,
                                FileClickCallback clickCallback,
                                OpenCameraClickCallback cameraCallback,
@@ -41,6 +47,7 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
         this.clickCallback = clickCallback;
         this.isVideo = isVideo;
         this.hasFileAccess = hasFileAccess;
+        this.allowMultipleSelection = allowMultipleSelection;
         if (isVideo) {
             this.picker = new VideoPicker();
         } else {
@@ -58,10 +65,6 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
         if (holder.path != null && cache != null) {
             cache.remove(holder.path);
         }
-       /* ImageView iv = holder.itemView.findViewById(R.id.image);
-        if (iv != null) {
-         //   iv.setImageBitmap(null);
-        }*/
     }
 
     @NonNull
@@ -77,11 +80,7 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
         } else {
             v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cs_file_picker_cell,
                     parent, false);
-            v.setOnClickListener(clicked -> {
-                activePos = viewType;
-                clickCallback.select(imagePath.get(activePos - 1));
-                notifyDataSetChanged();
-            });
+
         }
         v.getLayoutParams().width = Sizes.getScreenSize(v.getContext()).x / 3;
         v.getLayoutParams().height = (16 * v.getLayoutParams().width) / 9;
@@ -102,19 +101,39 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
         return position;
     }
 
-    public int activePos = -1;
+    public Set<Integer> activePositions = new HashSet<>();
 
 
     @Override
     public void onBindViewHolder(@NonNull FilePreviewsHolder holder, int position) {
         if (position != 0) {
             if (hasFileAccess) {
-                holder.itemView.setSelected(position == activePos);
+                holder.itemView.setSelected(activePositions.contains(position - 1));
                 ImageView iv = holder.itemView.findViewById(R.id.image);
                 if (iv != null) {
                     holder.path = imagePath.get(position - 1);
                     cache.loadPreview(imagePath.get(position - 1), iv, isVideo);
                 }
+                holder.itemView.setOnClickListener(v -> {
+                    if (activePositions.contains(position - 1)) {
+                        clickCallback.unselect(imagePath.get(position - 1));
+                        activePositions.remove(position - 1);
+                    } else {
+                        activePositions.add(position - 1);
+                        clickCallback.select(imagePath.get(position - 1));
+                        if (!allowMultipleSelection) {
+                            Iterator<Integer> i = activePositions.iterator();
+                            while (i.hasNext()) {
+                                Integer activePosition = i.next();
+                                if (activePosition != position - 1) {
+                                    clickCallback.unselect(imagePath.get(activePosition));
+                                    i.remove();
+                                }
+                            }
+                        }
+                    }
+                    notifyDataSetChanged();
+                });
             } else {
                 TextView text = holder.itemView.findViewById(R.id.gallery_access_text);
                 text.setText(galleryAccessText);
@@ -124,10 +143,7 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
             }
         } else {
             holder.itemView.setOnClickListener(v -> {
-                activePos = -1;
-                clickCallback.unselect();
                 cameraCallback.open(isVideo);
-                notifyDataSetChanged();
             });
         }
     }

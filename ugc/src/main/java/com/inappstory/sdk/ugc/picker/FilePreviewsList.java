@@ -34,6 +34,7 @@ public class FilePreviewsList extends RecyclerView {
 
     public void load(boolean isVideo,
                      boolean hasFileAccess,
+                     boolean allowMultipleSelection,
                      List<String> mimeTypes,
                      FileClickCallback clickCallback,
                      OpenCameraClickCallback cameraCallback,
@@ -42,6 +43,7 @@ public class FilePreviewsList extends RecyclerView {
         FilePreviewsAdapter adapter = new FilePreviewsAdapter(getContext(),
                 isVideo,
                 hasFileAccess,
+                allowMultipleSelection,
                 mimeTypes,
                 clickCallback,
                 cameraCallback,

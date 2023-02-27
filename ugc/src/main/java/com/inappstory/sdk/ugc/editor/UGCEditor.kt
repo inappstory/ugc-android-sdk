@@ -240,6 +240,10 @@ internal class UGCEditor : AppCompatActivity() {
                     )
                     intent.putExtra("messageNames", messageNames)
                     intent.putExtra("messages", messages)
+                    intent.putExtra(
+                        "allowMultiple",
+                        fileChooserParams?.mode == FileChooserParams.MODE_OPEN_MULTIPLE
+                    )
                     intent.putExtra("type", filteredTypes.first)
                     startActivityForResult(intent, CHOOSE_FILE_REQUEST_CODE)
                 }
@@ -319,9 +323,11 @@ internal class UGCEditor : AppCompatActivity() {
             CHOOSE_FILE_REQUEST_CODE -> {
                 var arr: Array<Uri> = arrayOf()
                 if (resultCode == Activity.RESULT_OK) {
-                    val filePath = data?.getStringExtra("file")
-                    if (filePath != null) {
-                        arr = arrayOf(Uri.fromFile(File(filePath)))
+                    val files = data?.getStringArrayExtra("files")
+                    if (files != null) {
+                        arr = files.map {
+                            Uri.fromFile(File(it))
+                        }.toTypedArray()
                     }
                 }
                 filePathCallback?.onReceiveValue(

@@ -1,11 +1,10 @@
 package com.inappstory.sdk.ugc.editor
 
-import com.inappstory.sdk.stories.api.models.SessionEditorConfig
 
 internal class EditorConfig {
     var sessionId: String? = null
     var apiKey: String? = null
-    var config: SessionEditorConfig? = null
+    var config: HashMap<String, Any?>? = null
     var lang: String? = null
     var sdkVersion: String? = null
     var appPackageId: String? = null

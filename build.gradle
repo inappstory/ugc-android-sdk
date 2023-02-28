@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext {
-        ugc_inappstory_version = "1a4847a3933a97281893fd0564b065222b4f2863"
+        ugc_inappstory_version = "3a6c7802045c7df89f12bd5671b85f24dee391cf"
     }
     repositories {
         google()

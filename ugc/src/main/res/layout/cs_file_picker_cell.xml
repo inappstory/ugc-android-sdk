@@ -11,11 +11,25 @@
         android:clickable="false"
         android:id="@+id/image"
         android:scaleType="centerCrop"/>
+
     <View
+        android:id="@+id/border"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/border"
-        android:clickable="false"
         android:background="@drawable/cs_file_picker_border"
-        android:scaleType="centerCrop"/>
+        android:clickable="false"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:id="@+id/count"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_alignParentRight="true"
+        android:layout_margin="16dp"
+        android:maxLines="1"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:textSize="12sp"
+        android:background="@drawable/picker_cell_background"
+        android:gravity="center" />
 </RelativeLayout>

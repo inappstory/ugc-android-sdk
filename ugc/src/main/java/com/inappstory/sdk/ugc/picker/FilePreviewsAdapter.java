@@ -101,31 +101,41 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
         return position;
     }
 
-    public Set<Integer> activePositions = new HashSet<>();
+    public List<Integer> activePositions = new ArrayList<>();
+
+
 
 
     @Override
     public void onBindViewHolder(@NonNull FilePreviewsHolder holder, int position) {
+        Integer intPos = Integer.valueOf(position - 1);
         if (position != 0) {
             if (hasFileAccess) {
-                holder.itemView.setSelected(activePositions.contains(position - 1));
+                holder.itemView.setSelected(activePositions.contains(intPos));
                 ImageView iv = holder.itemView.findViewById(R.id.image);
                 if (iv != null) {
                     holder.path = imagePath.get(position - 1);
                     cache.loadPreview(imagePath.get(position - 1), iv, isVideo);
                 }
+                TextView count = holder.itemView.findViewById(R.id.count);
+                if (activePositions.contains(intPos)) {
+                    count.setText(Integer.toString(activePositions.indexOf(position - 1) + 1));
+                    count.setVisibility(View.VISIBLE);
+                } else {
+                    count.setVisibility(View.GONE);
+                }
                 holder.itemView.setOnClickListener(v -> {
-                    if (activePositions.contains(position - 1)) {
+                    if (activePositions.contains(intPos)) {
                         clickCallback.unselect(imagePath.get(position - 1));
-                        activePositions.remove(position - 1);
+                        activePositions.remove(intPos);
                     } else {
-                        activePositions.add(position - 1);
+                        activePositions.add(intPos);
                         clickCallback.select(imagePath.get(position - 1));
                         if (!allowMultipleSelection) {
                             Iterator<Integer> i = activePositions.iterator();
                             while (i.hasNext()) {
                                 Integer activePosition = i.next();
-                                if (activePosition != position - 1) {
+                                if (activePosition.intValue() != intPos.intValue()) {
                                     clickCallback.unselect(imagePath.get(activePosition));
                                     i.remove();
                                 }

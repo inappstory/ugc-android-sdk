@@ -60,6 +60,10 @@ internal class FileChooseActivity : AppCompatActivity() {
                 "allowMultiple",
                 intent.getBooleanExtra("allowMultiple", false)
             )
+            bundle.putInt(
+                "filePickerFilesLimit",
+                intent.getIntExtra("filePickerFilesLimit", 10)
+            )
             bundle.putStringArray(
                 "messages",
                 intent.getStringArrayExtra("messages")

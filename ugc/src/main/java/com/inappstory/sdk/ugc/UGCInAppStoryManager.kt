@@ -46,18 +46,21 @@ object UGCInAppStoryManager {
                             currentEditor = null
                         }
                     }
-                val configSt = JsonParser.getJson(genEditorConfig(context, ugcInitData))
+                val config = genEditorConfig(context, ugcInitData)
+                val configSt = JsonParser.getJson(config)
                 val messages = Session.getInstance()?.editor?.messages
+                val galleryFileMaxCount = config.config?.getOrElse("filePickerFilesLimit") { 10 } as Int
                 CoroutineScope(Dispatchers.Main).launch {
                     val intent = Intent(
                         context,
                         UGCEditor::class.java
                     )
                     messages?.let {
-                        val (keys,values) = messages.toList().unzip()
+                        val (keys, values) = messages.toList().unzip()
                         intent.putExtra("messageNames", keys.toTypedArray())
                         intent.putExtra("messages", values.toTypedArray())
                     }
+                    intent.putExtra("filePickerFilesLimit", galleryFileMaxCount)
                     intent.putExtra("editorConfig", configSt)
                     intent.putExtra("url", Session.getInstance()?.editor?.url ?: "")
                     context.startActivity(intent)

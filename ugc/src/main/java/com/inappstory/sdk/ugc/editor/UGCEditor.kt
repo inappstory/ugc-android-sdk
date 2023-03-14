@@ -219,6 +219,7 @@ internal class UGCEditor : AppCompatActivity() {
 
         val messageNames = intent.getStringArrayExtra("messageNames")
         val messages = intent.getStringArrayExtra("messages")
+        val filePickerFilesLimit = intent.getIntExtra("filePickerFilesLimit", 10)
         webView.webChromeClient = object : WebChromeClient() {
             var init = false
             override fun onShowFileChooser(
@@ -244,6 +245,7 @@ internal class UGCEditor : AppCompatActivity() {
                         "allowMultiple",
                         fileChooserParams?.mode == FileChooserParams.MODE_OPEN_MULTIPLE
                     )
+                    intent.putExtra("filePickerFilesLimit", filePickerFilesLimit)
                     intent.putExtra("type", filteredTypes.first)
                     startActivityForResult(intent, CHOOSE_FILE_REQUEST_CODE)
                 }

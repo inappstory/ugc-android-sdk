@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,6 +32,8 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
     boolean hasFileAccess;
     boolean allowMultipleSelection;
     String galleryAccessText;
+    int galleryFileMaxCount;
+    String galleryFileLimitText;
 
     public FilePreviewsAdapter(Context context,
                                boolean isVideo,
@@ -40,8 +43,12 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
                                FileClickCallback clickCallback,
                                OpenCameraClickCallback cameraCallback,
                                NoAccessCallback noAccessCallback,
-                               String galleryAccessText) {
+                               String galleryAccessText,
+                               int galleryFileMaxCount,
+                               String galleryFileLimitText) {
         this.noAccessCallback = noAccessCallback;
+        this.galleryFileMaxCount = galleryFileMaxCount;
+        this.galleryFileLimitText = galleryFileLimitText;
         this.galleryAccessText = galleryAccessText;
         this.cameraCallback = cameraCallback;
         this.clickCallback = clickCallback;
@@ -103,9 +110,6 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
 
     public List<Integer> activePositions = new ArrayList<>();
 
-
-
-
     @Override
     public void onBindViewHolder(@NonNull FilePreviewsHolder holder, int position) {
         Integer intPos = Integer.valueOf(position - 1);
@@ -129,6 +133,14 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
                         clickCallback.unselect(imagePath.get(position - 1));
                         activePositions.remove(intPos);
                     } else {
+                        if (activePositions.size() >= galleryFileMaxCount) {
+                            Toast.makeText(
+                                    holder.itemView.getContext(),
+                                    galleryFileLimitText,
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                            return;
+                        }
                         activePositions.add(intPos);
                         clickCallback.select(imagePath.get(position - 1));
                         if (!allowMultipleSelection) {

@@ -39,7 +39,9 @@ public class FilePreviewsList extends RecyclerView {
                      FileClickCallback clickCallback,
                      OpenCameraClickCallback cameraCallback,
                      NoAccessCallback noAccessCallback,
-                     String galleryAccessText) {
+                     String galleryAccessText,
+                     int galleryFileMaxCount,
+                     String galleryFileLimitText) {
         FilePreviewsAdapter adapter = new FilePreviewsAdapter(getContext(),
                 isVideo,
                 hasFileAccess,
@@ -48,7 +50,9 @@ public class FilePreviewsList extends RecyclerView {
                 clickCallback,
                 cameraCallback,
                 noAccessCallback,
-                galleryAccessText
+                galleryAccessText,
+                galleryFileMaxCount,
+                galleryFileLimitText
         );
         adapter.setHasStableIds(true);
         setAdapter(adapter);

@@ -149,6 +149,7 @@ internal class FilePickerFragment : Fragment() {
     private val videoDefault =
         "You need camera and microphone access to make videos. Tap Settings > Permissions and turn 'Camera' and 'Microphone' on"
 
+
     fun requestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -214,8 +215,13 @@ internal class FilePickerFragment : Fragment() {
 
     private fun loadPreviews(hasFileAccess: Boolean) {
         loaded = hasFileAccess
+
+        val galleryFileLimitText =
+            messages["warns_file_picker_files_limit"] ?: "You can select up to 10 files"
         val allowMultiple = arguments?.getBoolean("allowMultiple") ?: false
-        previews?.load(isVideo,
+        val filePickerFilesLimit = arguments?.getInt("filePickerFilesLimit") ?: 10
+        previews?.load(
+            isVideo,
             hasFileAccess,
             allowMultiple,
             acceptTypes,
@@ -243,7 +249,9 @@ internal class FilePickerFragment : Fragment() {
                     checkStoragePermissions()
                 }
             },
-            galleryAccessText
+            galleryAccessText,
+            filePickerFilesLimit,
+            galleryFileLimitText
         )
     }
 

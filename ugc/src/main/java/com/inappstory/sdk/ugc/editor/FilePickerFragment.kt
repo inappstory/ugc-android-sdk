@@ -37,13 +37,11 @@ internal class FilePickerFragment : Fragment() {
     private var uploadButton: FloatingActionButton? = null
     private var previews: FilePreviewsList? = null
 
-    var isVideo = false
     var acceptTypes: ArrayList<String>? = null
     val selectedFiles = hashSetOf<String>()
 
     private val STORAGE_PERMISSIONS_RESULT = 888
-    private val CAMERA_PERMISSIONS_RESULT_PHOTO = 889
-    private val CAMERA_PERMISSIONS_RESULT_VIDEO = 890
+    private val CAMERA_PERMISSIONS_RESULT = 890
 
     private fun checkStoragePermissions() {
         activity?.apply {
@@ -70,13 +68,11 @@ internal class FilePickerFragment : Fragment() {
         }
     }
 
-    private fun checkCameraPermissions(isVideo: Boolean) {
+    private fun checkCameraPermissions() {
         activity?.apply {
             var allGranted = true;
-            val localPerms = arrayListOf(Manifest.permission.CAMERA).apply {
-                if (isVideo)
-                    add(Manifest.permission.RECORD_AUDIO)
-            }
+            val localPerms =
+                arrayListOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
             localPerms.forEach {
                 if (ContextCompat.checkSelfPermission(
                         this,
@@ -90,11 +86,11 @@ internal class FilePickerFragment : Fragment() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     this.requestPermissions(
                         localPerms.toTypedArray(),
-                        if (isVideo) CAMERA_PERMISSIONS_RESULT_VIDEO else CAMERA_PERMISSIONS_RESULT_PHOTO
+                        CAMERA_PERMISSIONS_RESULT
                     )
                 }
             } else {
-                openCameraScreen(isVideo)
+                openCameraScreen()
             }
         }
     }
@@ -117,7 +113,6 @@ internal class FilePickerFragment : Fragment() {
             if (messageNames != null && messageValues != null) {
                 messages.putAll(messageNames.zip(messageValues).toMap())
             }
-            isVideo = getBoolean("isVideo", false)
             acceptTypes = getStringArrayList("acceptTypes")
             messages["button_no_gallery_access"]?.let {
                 galleryAccessText = it
@@ -144,10 +139,8 @@ internal class FilePickerFragment : Fragment() {
     private val messages = hashMapOf<String, String>()
     private val storageDefault =
         "You need storage access to load photos and videos. Tap Settings > Permissions and turn \'Files and media\' on"
-    private val photoDefault =
-        "You need camera access to make photos. Tap Settings > Permissions and turn 'Camera' on"
     private val videoDefault =
-        "You need camera and microphone access to make videos. Tap Settings > Permissions and turn 'Camera' and 'Microphone' on"
+        "You need camera and microphone access to make photos and videos. Tap Settings > Permissions and turn 'Camera' and 'Microphone' on"
 
 
     fun requestPermissionsResult(
@@ -159,8 +152,7 @@ internal class FilePickerFragment : Fragment() {
         val positiveText = messages["dialog_button_settings"]
         val negativeText = messages["dialog_button_not_now"]
         if (requestCode == STORAGE_PERMISSIONS_RESULT
-            || requestCode == CAMERA_PERMISSIONS_RESULT_PHOTO
-            || requestCode == CAMERA_PERMISSIONS_RESULT_VIDEO
+            || requestCode == CAMERA_PERMISSIONS_RESULT
         ) {
             if (grantResults.isNotEmpty()) {
                 permissions.forEachIndexed { index, permission ->
@@ -185,19 +177,7 @@ internal class FilePickerFragment : Fragment() {
                     else
                         loadPreviews(true)
                 }
-                CAMERA_PERMISSIONS_RESULT_PHOTO -> {
-                    if (!allGranted)
-                        openSettingsDialog(
-                            text = messages.getOrElse(
-                                "dialog_photo_permissions_warning",
-                                defaultValue = { photoDefault }),
-                            positiveText = positiveText,
-                            negativeText = negativeText,
-                        )
-                    else
-                        openCameraScreen(false)
-                }
-                CAMERA_PERMISSIONS_RESULT_VIDEO -> {
+                CAMERA_PERMISSIONS_RESULT -> {
                     if (!allGranted)
                         openSettingsDialog(
                             text = messages.getOrElse(
@@ -207,7 +187,7 @@ internal class FilePickerFragment : Fragment() {
                             negativeText = negativeText,
                         )
                     else
-                        openCameraScreen(true)
+                        openCameraScreen()
                 }
             }
         }
@@ -221,7 +201,6 @@ internal class FilePickerFragment : Fragment() {
         val allowMultiple = arguments?.getBoolean("allowMultiple") ?: false
         val filePickerFilesLimit = arguments?.getInt("filePickerFilesLimit") ?: 10
         previews?.load(
-            isVideo,
             hasFileAccess,
             allowMultiple,
             acceptTypes,
@@ -239,8 +218,8 @@ internal class FilePickerFragment : Fragment() {
                 }
             },
             object : OpenCameraClickCallback {
-                override fun open(isVideo: Boolean) {
-                    checkCameraPermissions(isVideo)
+                override fun open() {
+                    checkCameraPermissions()
                     //openCameraScreen(isVideo)
                 }
             },
@@ -292,12 +271,12 @@ internal class FilePickerFragment : Fragment() {
 
     }
 
-    private fun openCameraScreen(isVideo: Boolean) {
+    private fun openCameraScreen() {
         if (activity is FileChooseActivity) {
             loaded = false
             (activity as FileChooseActivity).openFileCameraScreen(
                 Bundle().also {
-                    it.putBoolean("isVideo", isVideo)
+                    it.putBoolean("isVideo", true)
                 }
             )
         }

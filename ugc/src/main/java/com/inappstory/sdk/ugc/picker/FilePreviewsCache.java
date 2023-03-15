@@ -105,6 +105,7 @@ public class FilePreviewsCache {
                             imageView.setImageBitmap(loaded);
                         });
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 });
             } else {

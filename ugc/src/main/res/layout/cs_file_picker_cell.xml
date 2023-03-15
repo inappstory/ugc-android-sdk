@@ -32,4 +32,20 @@
         android:textSize="12sp"
         android:background="@drawable/picker_cell_background"
         android:gravity="center" />
+    <TextView
+        android:id="@+id/videoDuration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:visibility="visible"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:padding="8dp"
+        android:maxLines="1"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:background="@drawable/camera_timer_background"
+        android:gravity="center" />
+
 </RelativeLayout>

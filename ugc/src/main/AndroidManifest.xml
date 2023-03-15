@@ -20,12 +20,14 @@
         <activity
             android:hardwareAccelerated="true"
             android:name=".editor.UGCEditor"
+            android:exported="true"
             android:screenOrientation="portrait"
             android:theme="@style/UGCAppTheme.Transparent" />
 
         <activity
             android:hardwareAccelerated="true"
             android:name=".editor.FileChooseActivity"
+            android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/UGCAppTheme.Transparent" />
 

@@ -1,4 +1,4 @@
-package com.inappstory.sdk.ugc.editor
+package com.inappstory.sdk.ugc.camerax
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,25 +7,26 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import androidx.fragment.app.Fragment
-import com.inappstory.sdk.stories.ui.video.VideoPlayer
 import com.inappstory.sdk.stories.utils.Sizes
 import com.inappstory.sdk.ugc.R
-import com.inappstory.sdk.ugc.camerax.PreviewFragment
+import com.inappstory.sdk.ugc.editor.FileChooseActivity
+import com.inappstory.sdk.ugc.picker.FilePreviewsCache
 import kotlin.math.min
 
-class VideoPreviewFragment : PreviewFragment() {
+class PhotoPreviewFragment : PreviewFragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         filePath = arguments?.getString("filePath") ?: ""
-        return inflater.inflate(R.layout.cs_video_preview_fragment, null)
+        return inflater.inflate(R.layout.cs_photo_preview_fragment, null)
     }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        view.findViewById<VideoPlayer>(R.id.video_preview).also {
+        view.findViewById<ImageView>(R.id.photo_preview).also {
             val x = Sizes.getScreenSize().x.coerceAtMost(
                 9 * Sizes.getScreenSize().y / 16
             )
@@ -35,7 +36,13 @@ class VideoPreviewFragment : PreviewFragment() {
             it.layoutParams.width = x
             it.layoutParams.height = y
             it.requestLayout()
-            it.loadVideo(filePath)
+            (requireActivity() as FileChooseActivity).loadPreview(
+                path = filePath,
+                isVideo = false,
+                imageView = it
+            )
         }
     }
+
+
 }

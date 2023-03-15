@@ -3,16 +3,15 @@ package com.inappstory.sdk.ugc.editor
 import android.Manifest
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.inappstory.sdk.imageloader.ImageLoader
 import com.inappstory.sdk.stories.ui.video.VideoPlayer
 import com.inappstory.sdk.stories.utils.Sizes
 import com.inappstory.sdk.ugc.R
@@ -31,10 +30,7 @@ class CameraFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         isVideo = requireArguments().getBoolean("isVideo", false)
-        return if (isVideo)
-            inflater.inflate(R.layout.cs_video_camera_fragment, null)
-        else
-            inflater.inflate(R.layout.cs_camera_fragment, null)
+        return inflater.inflate(R.layout.cs_video_camera_fragment, null)
     }
 
     var isVideo = false
@@ -102,10 +98,19 @@ class CameraFragment : Fragment() {
     private var previewLayout: View? = null
     private var videoPlayer: VideoPlayer? = null
 
-    private fun initVideoScreen(view: View) {
+    private fun initScreen(view: View) {
         recordLayout = view.findViewById(R.id.recordLayout)
         previewLayout = view.findViewById(R.id.previewLayout)
-        videoPlayer = view.findViewById<VideoPlayer>(R.id.preview).also {
+        val preview = view.findViewById<ImageView>(R.id.photo_preview).also {
+            it.layoutParams = RelativeLayout.LayoutParams(
+                Sizes.getScreenSize(context).x,
+                min(
+                    (16 * Sizes.getScreenSize(context).x) / 9,
+                    Sizes.getScreenSize(context).y
+                )
+            )
+        }
+        videoPlayer = view.findViewById<VideoPlayer>(R.id.video_preview).also {
             it.layoutParams = RelativeLayout.LayoutParams(
                 Sizes.getScreenSize(context).x,
                 min(
@@ -124,31 +129,57 @@ class CameraFragment : Fragment() {
             else
                 openFrontCamera()
         }
+        var latestModeIsVideo = false;
         cameraButton = view.findViewById<CameraButton>(R.id.cameraButton).also {
             it.isVideoButton = true
             it.setOnClickListener {
-                if (videoStarted) {
+                latestModeIsVideo = false
+                preview.visibility = View.VISIBLE
+                videoPlayer?.visibility = View.GONE
+                ioScope.launch {
+                    makePhoto(saveAction = {
+                        mainScope.launch(Dispatchers.Main) {
+                            cache.loadPreview(it, preview, false)
+                        }
+                    }, action = {
+                        showPreview()
+                    })
+                }
+            }
+            it.setOnLongClickListener {
+                latestModeIsVideo = true
+                preview.visibility = View.GONE
+                videoPlayer?.visibility = View.VISIBLE
+                ioScope.launch {
+                    delay(300)
+                    startVideo()
+                    videoStarted = !videoStarted
+                }
+                true
+            }
+            it.setOnTouchListener { v, event ->
+                if (event.action == MotionEvent.ACTION_UP ||
+                    event.action == MotionEvent.ACTION_CANCEL
+                ) {
                     cameraView?.pauseCameraView()
                     ioScope.launch {
                         delay(300)
                         stopVideo()
                         videoStarted = !videoStarted
                     }
-                } else {
-                    ioScope.launch {
-                        delay(300)
-                        startVideo()
-
-                        videoStarted = !videoStarted
-                    }
                 }
+                v.performClick()
             }
         }
+
         restart.setOnClickListener {
             previewLayout?.visibility = View.GONE
-            videoPlayer?.destroy()
             recordLayout?.visibility = View.VISIBLE
             cameraView?.resumeCameraView()
+            if (latestModeIsVideo)
+                videoPlayer?.destroy()
+            else
+                preview.setImageBitmap(null)
             if (lastIsBackCam)
                 openBackCamera()
             else
@@ -238,8 +269,7 @@ class CameraFragment : Fragment() {
                 Manifest.permission.CAMERA
             )
         }
-        if (isVideo) initVideoScreen(view)
-        else initPhotoScreen(view)
+        initScreen(view)
         activityResultLauncher.launch(appPerms)
     }
 
@@ -266,20 +296,20 @@ class CameraFragment : Fragment() {
     }
 
     private fun startVideo() {
-       /* delayedStopJob = startDelayedJob(delayTime = 130000) {
-            delayedStopJob = null
-            if (videoStarted) {
-                mainScope.launch {
-                    cameraButton?.stop()
-                }
-                ioScope.launch {
-                    cameraView?.pauseCameraView()
-                    delay(300)
-                    stopVideo()
-                    videoStarted = !videoStarted
-                }
-            }
-        }*/
+        /* delayedStopJob = startDelayedJob(delayTime = 130000) {
+             delayedStopJob = null
+             if (videoStarted) {
+                 mainScope.launch {
+                     cameraButton?.stop()
+                 }
+                 ioScope.launch {
+                     cameraView?.pauseCameraView()
+                     delay(300)
+                     stopVideo()
+                     videoStarted = !videoStarted
+                 }
+             }
+         }*/
         (cameraView!! as VideoCameraView).apply {
             setForceStopCallback(object : VideoForceStopCallback {
                 override fun onStop() {
@@ -304,8 +334,8 @@ class CameraFragment : Fragment() {
     private var delayedStopJob: Job? = null
 
     private fun clearDelayedJob() {
-      //  delayedStopJob?.cancel()
-      //  delayedStopJob = null
+        //  delayedStopJob?.cancel()
+        //  delayedStopJob = null
     }
 
     private fun stopVideo() {

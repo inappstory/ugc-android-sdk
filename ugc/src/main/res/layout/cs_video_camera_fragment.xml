@@ -49,8 +49,14 @@
         android:layout_height="match_parent"
         android:visibility="gone">
 
+        <ImageView
+            android:layout_width="match_parent"
+            android:id="@+id/photo_preview"
+            android:visibility="gone"
+            android:layout_height="match_parent"/>
         <com.inappstory.sdk.stories.ui.video.VideoPlayer
-            android:id="@+id/preview"
+            android:id="@+id/video_preview"
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 

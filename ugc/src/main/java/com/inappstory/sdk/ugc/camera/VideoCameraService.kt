@@ -33,6 +33,7 @@ class VideoCameraService(cameraManager: CameraManager, cameraID: String) :
     override fun startCameraPreview() {
         mTexture!!.setDefaultBufferSize(1280, 720)
         var surface = Surface(mTexture)
+
         try {
             mPreviewBuilder =
                 mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)?.also {

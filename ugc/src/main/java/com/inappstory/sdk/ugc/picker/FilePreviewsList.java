@@ -32,7 +32,7 @@ public class FilePreviewsList extends RecyclerView {
                 false));
     }
 
-    public void load(boolean isVideo,
+    public void load(
                      boolean hasFileAccess,
                      boolean allowMultipleSelection,
                      List<String> mimeTypes,
@@ -43,7 +43,6 @@ public class FilePreviewsList extends RecyclerView {
                      int galleryFileMaxCount,
                      String galleryFileLimitText) {
         FilePreviewsAdapter adapter = new FilePreviewsAdapter(getContext(),
-                isVideo,
                 hasFileAccess,
                 allowMultipleSelection,
                 mimeTypes,

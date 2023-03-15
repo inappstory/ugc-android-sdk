@@ -1,7 +1,7 @@
 package com.inappstory.sdk.ugc.picker;
 
 import android.content.Context;
-import android.content.Intent;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,15 +16,12 @@ import com.inappstory.sdk.stories.utils.Sizes;
 import com.inappstory.sdk.ugc.R;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
     FilePicker picker;
-    List<String> imagePath = new ArrayList<>();
-    boolean isVideo;
+    List<FilePicker.FileData> previews = new ArrayList<>();
     FilePreviewsCache cache = new FilePreviewsCache();
     OpenCameraClickCallback cameraCallback;
     FileClickCallback clickCallback;
@@ -36,7 +33,6 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
     String galleryFileLimitText;
 
     public FilePreviewsAdapter(Context context,
-                               boolean isVideo,
                                boolean hasFileAccess,
                                boolean allowMultipleSelection,
                                List<String> mimeTypes,
@@ -52,16 +48,17 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
         this.galleryAccessText = galleryAccessText;
         this.cameraCallback = cameraCallback;
         this.clickCallback = clickCallback;
-        this.isVideo = isVideo;
         this.hasFileAccess = hasFileAccess;
         this.allowMultipleSelection = allowMultipleSelection;
-        if (isVideo) {
-            this.picker = new VideoPicker();
-        } else {
-            this.picker = new ImagePicker();
-        }
+        this.picker = new PhotoVideoPicker();
         if (hasFileAccess) {
-            imagePath.addAll(picker.getImagesPath(context, mimeTypes));
+            previews.addAll(
+                    picker.getImagesPath(
+                            context,
+                            new PickerFilter(30000000L, 30000L),
+                            mimeTypes
+                    )
+            );
         }
     }
 
@@ -115,13 +112,23 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
         Integer intPos = Integer.valueOf(position - 1);
         if (position != 0) {
             if (hasFileAccess) {
+                FilePicker.FileData data = previews.get(position - 1);
+                String path = data.component1();
+                Long duration = data.component2();
                 holder.itemView.setSelected(activePositions.contains(intPos));
                 ImageView iv = holder.itemView.findViewById(R.id.image);
                 if (iv != null) {
-                    holder.path = imagePath.get(position - 1);
-                    cache.loadPreview(imagePath.get(position - 1), iv, isVideo);
+                    holder.path = path;
+                    cache.loadPreview(path, iv, duration != null);
                 }
                 TextView count = holder.itemView.findViewById(R.id.count);
+                TextView videoDuration = holder.itemView.findViewById(R.id.videoDuration);
+                if (duration != null) {
+                    videoDuration.setVisibility(View.VISIBLE);
+                    videoDuration.setText(Long.toString(duration));
+                } else {
+                    videoDuration.setVisibility(View.GONE);
+                }
                 if (activePositions.contains(intPos)) {
                     count.setText(Integer.toString(activePositions.indexOf(position - 1) + 1));
                     count.setVisibility(View.VISIBLE);
@@ -130,7 +137,7 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
                 }
                 holder.itemView.setOnClickListener(v -> {
                     if (activePositions.contains(intPos)) {
-                        clickCallback.unselect(imagePath.get(position - 1));
+                        clickCallback.unselect(path);
                         activePositions.remove(intPos);
                     } else {
                         if (activePositions.size() >= galleryFileMaxCount) {
@@ -142,13 +149,13 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
                             return;
                         }
                         activePositions.add(intPos);
-                        clickCallback.select(imagePath.get(position - 1));
+                        clickCallback.select(path);
                         if (!allowMultipleSelection) {
                             Iterator<Integer> i = activePositions.iterator();
                             while (i.hasNext()) {
                                 Integer activePosition = i.next();
                                 if (activePosition.intValue() != intPos.intValue()) {
-                                    clickCallback.unselect(imagePath.get(activePosition));
+                                    clickCallback.unselect(previews.get(activePosition).component1());
                                     i.remove();
                                 }
                             }
@@ -165,7 +172,7 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
             }
         } else {
             holder.itemView.setOnClickListener(v -> {
-                cameraCallback.open(isVideo);
+                cameraCallback.open();
             });
         }
     }
@@ -173,6 +180,6 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
 
     @Override
     public int getItemCount() {
-        return (hasFileAccess ? imagePath.size() : 1) + 1;
+        return (hasFileAccess ? previews.size() : 1) + 1;
     }
 }

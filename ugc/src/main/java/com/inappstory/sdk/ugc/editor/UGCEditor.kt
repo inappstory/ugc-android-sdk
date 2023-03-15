@@ -188,18 +188,13 @@ internal class UGCEditor : AppCompatActivity() {
         var resType: String? = null
         types?.forEach {
             if (it.startsWith(imageType)) {
-                if (!isVideo) {
-                    isImage = true
-                    res.add(it)
-                    resType = imageType
-                }
+                res.add(it)
+                resType = imageType
+
             }
             if (it.startsWith(videoType)) {
-                if (!isImage) {
-                    isVideo = true
-                    res.add(it)
-                    resType = videoType
-                }
+                res.add(it)
+                resType = videoType
             }
         }
         return Pair(resType, res)
@@ -229,26 +224,22 @@ internal class UGCEditor : AppCompatActivity() {
             ): Boolean {
 
                 this@UGCEditor.filePathCallback = filePathCallback
-                val filteredTypes = filterTypes(fileChooserParams?.acceptTypes?.asList())
-                if (filteredTypes.first.orEmpty().isNotEmpty()) {
-                    val intent = Intent(
-                        this@UGCEditor,
-                        FileChooseActivity::class.java
-                    )
-                    intent.putStringArrayListExtra(
-                        "acceptTypes",
-                        filteredTypes.second
-                    )
-                    intent.putExtra("messageNames", messageNames)
-                    intent.putExtra("messages", messages)
-                    intent.putExtra(
-                        "allowMultiple",
-                        fileChooserParams?.mode == FileChooserParams.MODE_OPEN_MULTIPLE
-                    )
-                    intent.putExtra("filePickerFilesLimit", filePickerFilesLimit)
-                    intent.putExtra("type", filteredTypes.first)
-                    startActivityForResult(intent, CHOOSE_FILE_REQUEST_CODE)
-                }
+                val intent = Intent(
+                    this@UGCEditor,
+                    FileChooseActivity::class.java
+                )
+                intent.putStringArrayListExtra(
+                    "acceptTypes",
+                    ArrayList(fileChooserParams?.acceptTypes?.asList() ?: emptyList<String>())
+                )
+                intent.putExtra("messageNames", messageNames)
+                intent.putExtra("messages", messages)
+                intent.putExtra(
+                    "allowMultiple",
+                    fileChooserParams?.mode == FileChooserParams.MODE_OPEN_MULTIPLE
+                )
+                intent.putExtra("filePickerFilesLimit", filePickerFilesLimit)
+                startActivityForResult(intent, CHOOSE_FILE_REQUEST_CODE)
                 return true
             }
 

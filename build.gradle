@@ -2,6 +2,7 @@
 buildscript {
     ext {
         ugc_inappstory_version = "3a6c7802045c7df89f12bd5671b85f24dee391cf"
+        camerax_version = "1.1.0"
     }
     repositories {
         google()

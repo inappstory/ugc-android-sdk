@@ -3,12 +3,17 @@ package com.inappstory.sdk.ugc.editor
 import android.annotation.TargetApi
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import com.inappstory.sdk.ugc.R
+import com.inappstory.sdk.ugc.camerax.CameraXFragment
+import com.inappstory.sdk.ugc.camerax.PhotoPreviewFragment
 import com.inappstory.sdk.ugc.picker.FilePicker
+import com.inappstory.sdk.ugc.picker.FilePreviewsCache
 import java.io.File
 import java.util.*
 
@@ -41,33 +46,31 @@ internal class FileChooseActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.cs_file_choose_activity)
-        val isVideo = intent.getStringExtra("type").equals("video")
 
         // askPermissions()
         if (savedInstanceState == null) {
-            val bundle = Bundle()
-            bundle.putBoolean("isVideo", isVideo)
-            bundle.putStringArrayList(
-                "acceptTypes",
-                intent.getStringArrayListExtra("acceptTypes")
-
-            )
-            bundle.putStringArray(
-                "messageNames",
-                intent.getStringArrayExtra("messageNames")
-            )
-            bundle.putBoolean(
-                "allowMultiple",
-                intent.getBooleanExtra("allowMultiple", false)
-            )
-            bundle.putInt(
-                "filePickerFilesLimit",
-                intent.getIntExtra("filePickerFilesLimit", 10)
-            )
-            bundle.putStringArray(
-                "messages",
-                intent.getStringArrayExtra("messages")
-            )
+            val bundle = Bundle().apply {
+                putStringArrayList(
+                    "acceptTypes",
+                    intent.getStringArrayListExtra("acceptTypes")
+                )
+                putStringArray(
+                    "messageNames",
+                    intent.getStringArrayExtra("messageNames")
+                )
+                putBoolean(
+                    "allowMultiple",
+                    intent.getBooleanExtra("allowMultiple", false)
+                )
+                putInt(
+                    "filePickerFilesLimit",
+                    intent.getIntExtra("filePickerFilesLimit", 10)
+                )
+                putStringArray(
+                    "messages",
+                    intent.getStringArrayExtra("messages")
+                )
+            }
             openFilePickerScreen(bundle)
         }
     }
@@ -139,18 +142,29 @@ internal class FileChooseActivity : AppCompatActivity() {
     }
 
     fun openFileCameraScreen(bundle: Bundle) {
-        currentFragment = CameraFragment().apply {
+        currentFragment = CameraXFragment().apply {
             bundle.putString("fileName", UUID.randomUUID().toString())
             arguments = bundle
             addFragment(this, "UGC_CAMERA")
         }
     }
 
+    private val cache = FilePreviewsCache(true)
 
-    fun openPreviewScreen(bundle: Bundle) {
-        currentFragment = VideoPreviewFragment().apply {
-            arguments = bundle
-            addFragment(this, "UGC_PREVIEW")
+    fun loadPreview(path: String, imageView: ImageView, isVideo: Boolean) {
+        cache.loadPreview(path, imageView, isVideo)
+    }
+
+    fun openPreviewScreen(isVideo: Boolean, filePath: String) {
+        currentFragment = (if (isVideo) {
+            VideoPreviewFragment()
+        } else {
+            PhotoPreviewFragment()
+        }).apply {
+            arguments = Bundle().apply {
+                putString("filePath", filePath)
+            }
+            openFragment(this, "UGC_PREVIEW")
         }
     }
 }

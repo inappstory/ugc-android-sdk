@@ -1,7 +1,10 @@
 package com.inappstory.sdk.ugc.editor
 
 import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -27,14 +30,15 @@ import com.inappstory.sdk.stories.ui.views.IGameLoaderView
 import com.inappstory.sdk.stories.utils.Sizes
 import com.inappstory.sdk.ugc.R
 import com.inappstory.sdk.ugc.UGCInAppStoryManager
+import com.inappstory.sdk.ugc.picker.FileChooseActivity
 import com.inappstory.sdk.utils.ZipLoadCallback
 import com.inappstory.sdk.utils.ZipLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
-import java.util.ArrayList
 import kotlin.math.max
+
 
 internal class UGCEditor : AppCompatActivity() {
     private lateinit var webView: IASWebView
@@ -48,7 +52,6 @@ internal class UGCEditor : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-        UGCInAppStoryManager.currentEditor = this
         setContentView(R.layout.cs_activity_ugc)
         UGCInAppStoryManager.editorCallback.editorEvent("editorWillShow");
         setViews()
@@ -58,29 +61,17 @@ internal class UGCEditor : AppCompatActivity() {
         loadEditor(intent.getStringExtra("url"))
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-    }
-
-
-    override fun onRestart() {
-        super.onRestart()
-    }
-
     override fun onStart() {
         super.onStart()
+        addBroadcastListener()
     }
 
     override fun onStop() {
+        removeBroadcastListener()
         super.onStop()
     }
 
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        Log.e("UGC_Lifecycle", "onRestoreInstanceState $savedInstanceState")
-    }
-
-    fun loadJsApiResponse(gameResponse: String, cb: String) {
+    private fun loadJsApiResponse(gameResponse: String, cb: String) {
         webView.evaluateJavascript("$cb('$gameResponse');", null)
     }
 
@@ -153,11 +144,17 @@ internal class UGCEditor : AppCompatActivity() {
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
 
     private fun pauseEditor() {
-        webView.evaluateJavascript("window.editorApi.pauseUI();", null)
+        if (this::webView.isInitialized) {
+            webView.evaluateJavascript("window.editorApi.pauseUI();", null)
+            webView.alpha = 0f
+        }
     }
 
     private fun resumeEditor() {
-        webView.evaluateJavascript("window.editorApi.resumeUI();", null)
+        if (this::webView.isInitialized) {
+            webView.alpha = 1f
+            webView.evaluateJavascript("window.editorApi.resumeUI();", null)
+        }
     }
 
     override fun onPause() {
@@ -179,6 +176,29 @@ internal class UGCEditor : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         resumeEditor()
+    }
+
+    lateinit var broadcastReceiver: BroadcastReceiver
+
+    private fun removeBroadcastListener() {
+        if (this::broadcastReceiver.isInitialized) {
+            unregisterReceiver(broadcastReceiver);
+        }
+    }
+
+
+    private fun addBroadcastListener() {
+        broadcastReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent == null) return
+                when (intent.action) {
+                    "closeUGCEditor" -> close()
+                }
+            }
+
+        }
+        val filter = IntentFilter("closeUGCEditor")
+        registerReceiver(broadcastReceiver, filter)
     }
 
     private fun filterTypes(types: List<String>?): Pair<String?, ArrayList<String>> {
@@ -277,11 +297,9 @@ internal class UGCEditor : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        if (UGCInAppStoryManager.currentEditor === this)
-            UGCInAppStoryManager.currentEditor = null
         UGCInAppStoryManager.editorCallback.editorEvent("editorDidClose");
         super.onDestroy()
-        closeCallback?.invoke()
+        UGCInAppStoryManager.invokeCloseCallback()
     }
 
     var callback: ZipLoadCallback = object : ZipLoadCallback {
@@ -339,10 +357,8 @@ internal class UGCEditor : AppCompatActivity() {
         }
     }
 
-    private var closeCallback: (() -> Unit) = { }
 
-    fun close(closeCallback: (() -> Unit) = {}) {
-        this.closeCallback = closeCallback
+    private fun close() {
         if (ugcLoaded) {
             webView.evaluateJavascript(
                 "window.editorApi.close();", null

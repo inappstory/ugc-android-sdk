@@ -1,5 +1,6 @@
 package com.inappstory.sdk.ugc.picker;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -15,7 +16,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.inappstory.sdk.stories.utils.Sizes;
 import com.inappstory.sdk.ugc.R;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -107,6 +110,14 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
 
     public List<Integer> activePositions = new ArrayList<>();
 
+    @SuppressLint("DefaultLocale")
+    private String convertLongToTime(long seconds) {
+        long s = seconds % 60;
+        long m = (seconds / 60) % 60;
+        long h = (seconds / (60 * 60)) % 24;
+        return seconds >= 3600 ? String.format("%02d:%02d:%02d", h, m, s) : String.format("%02d:%02d", m, s);
+    }
+
     @Override
     public void onBindViewHolder(@NonNull FilePreviewsHolder holder, int position) {
         Integer intPos = Integer.valueOf(position - 1);
@@ -125,7 +136,7 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
                 TextView videoDuration = holder.itemView.findViewById(R.id.videoDuration);
                 if (duration != null) {
                     videoDuration.setVisibility(View.VISIBLE);
-                    videoDuration.setText(Long.toString(duration));
+                    videoDuration.setText(convertLongToTime(duration / 1000));
                 } else {
                     videoDuration.setVisibility(View.GONE);
                 }

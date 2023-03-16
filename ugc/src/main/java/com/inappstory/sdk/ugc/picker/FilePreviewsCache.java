@@ -114,13 +114,17 @@ public class FilePreviewsCache {
         }
     }
 
-    private static Bitmap rotateImageIfRequired(Bitmap img, String filePath) throws IOException {
-
+    public static int getExifInformation(String filePath) throws IOException {
         ExifInterface ei = new ExifInterface(filePath);
+        return ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+    }
 
-        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+    private static Bitmap rotateImageIfRequired(Bitmap img, String filePath) throws IOException {
+        int orientation = getExifInformation(filePath);
         Log.e("exif_orientation", "" + orientation);
         switch (orientation) {
+            case ExifInterface.ORIENTATION_FLIP_HORIZONTAL:
+                return flipImage(img);
             case ExifInterface.ORIENTATION_ROTATE_90:
                 return rotateImage(img, 90);
             case ExifInterface.ORIENTATION_ROTATE_180:
@@ -225,6 +229,15 @@ public class FilePreviewsCache {
             }
             tasks.put(key, new QueuedTask(imageView));
         }
+    }
+
+    private static Bitmap flipImage(Bitmap img) {
+        Matrix matrix = new Matrix();
+        matrix.postScale(-1.0f, 1.0f);
+        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0,
+                img.getWidth(), img.getHeight(), matrix, true);
+        img.recycle();
+        return rotatedImg;
     }
 
     private static Bitmap rotateImage(Bitmap img, int degree) {

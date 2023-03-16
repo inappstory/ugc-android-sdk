@@ -26,7 +26,7 @@
 
         <activity
             android:hardwareAccelerated="true"
-            android:name=".editor.FileChooseActivity"
+            android:name=".picker.FileChooseActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/UGCAppTheme.Transparent" />

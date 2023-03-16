@@ -5,13 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.RelativeLayout
-import androidx.fragment.app.Fragment
 import com.inappstory.sdk.stories.utils.Sizes
 import com.inappstory.sdk.ugc.R
-import com.inappstory.sdk.ugc.editor.FileChooseActivity
-import com.inappstory.sdk.ugc.picker.FilePreviewsCache
-import kotlin.math.min
+import com.inappstory.sdk.ugc.picker.FileChooseActivity
 
 class PhotoPreviewFragment : PreviewFragment() {
     override fun onCreateView(

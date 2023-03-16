@@ -1,4 +1,4 @@
-package com.inappstory.sdk.ugc.editor
+package com.inappstory.sdk.ugc.picker
 
 import android.Manifest
 import android.content.Intent
@@ -15,10 +15,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.inappstory.sdk.ugc.R
-import com.inappstory.sdk.ugc.picker.FileClickCallback
-import com.inappstory.sdk.ugc.picker.FilePreviewsList
-import com.inappstory.sdk.ugc.picker.NoAccessCallback
-import com.inappstory.sdk.ugc.picker.OpenCameraClickCallback
 
 
 internal class FilePickerFragment : Fragment() {

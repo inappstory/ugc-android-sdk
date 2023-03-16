@@ -1,9 +1,8 @@
-package com.inappstory.sdk.ugc.editor
+package com.inappstory.sdk.ugc.picker
 
 import android.annotation.TargetApi
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
@@ -12,9 +11,7 @@ import androidx.fragment.app.Fragment
 import com.inappstory.sdk.ugc.R
 import com.inappstory.sdk.ugc.camerax.CameraXFragment
 import com.inappstory.sdk.ugc.camerax.PhotoPreviewFragment
-import com.inappstory.sdk.ugc.picker.FilePicker
-import com.inappstory.sdk.ugc.picker.FilePreviewsCache
-import java.io.File
+import com.inappstory.sdk.ugc.camerax.VideoPreviewFragment
 import java.util.*
 
 

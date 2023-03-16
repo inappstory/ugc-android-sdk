@@ -6,10 +6,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
-import android.util.Size
 import android.view.*
 import android.view.Surface.ROTATION_0
-import android.widget.RelativeLayout
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.*
@@ -18,13 +16,11 @@ import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.inappstory.sdk.stories.utils.Sizes
 import com.inappstory.sdk.ugc.R
-import com.inappstory.sdk.ugc.camera.CameraButton
-import com.inappstory.sdk.ugc.editor.FileChooseActivity
+import com.inappstory.sdk.ugc.picker.FileChooseActivity
 import kotlinx.coroutines.*
 import java.io.File
 import java.util.concurrent.Executor
@@ -114,6 +110,21 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
 
     private var currentCamera = 0
 
+    val ORIENTATIONS = mapOf(
+        Surface.ROTATION_0 to 90,
+        Surface.ROTATION_90 to 0,
+        Surface.ROTATION_180 to 270,
+        Surface.ROTATION_270 to 180
+    )
+
+    private fun getJpegOrientation(currentRotation: Int, lDeviceOrientation: Int = 0): Int {
+        var deviceOrientation = ORIENTATIONS[lDeviceOrientation]!!
+        val facingFront = currentCamera == 0
+        if (facingFront) deviceOrientation = -deviceOrientation
+        return (((currentRotation + deviceOrientation + 270) % 360) + 360) % 360
+    }
+
+
     private val cameraSelectors =
         listOf(CameraSelector.DEFAULT_BACK_CAMERA, CameraSelector.DEFAULT_FRONT_CAMERA)
 
@@ -127,20 +138,31 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
 
     private lateinit var cameraProvider: ProcessCameraProvider
 
+    @SuppressLint("RestrictedApi")
     private fun startCameraPreview(context: Context) {
+        Log.e("currentRotation", "${getJpegOrientation(view?.display?.rotation ?: ROTATION_0)}")
         ProcessCameraProvider.getInstance(context).let { cameraProviderFuture ->
             cameraProviderFuture.addListener(
                 {
                     cameraProvider = cameraProviderFuture.get()
                     preview = Preview.Builder()
                         .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                        .setTargetRotation(
+                            //   getJpegOrientation(
+                            view?.display?.rotation ?: ROTATION_0
+                        )
+                        // )
                         .build()
                         .also {
                             it.setSurfaceProvider(previewView.surfaceProvider)
                         }
                     imageCapture = ImageCapture.Builder()
                         .setTargetAspectRatio(AspectRatio.RATIO_16_9)
-                        .setTargetRotation(view?.display?.rotation ?: ROTATION_0)
+                        .setTargetRotation(
+                            // getJpegOrientation(
+                            view?.display?.rotation ?: ROTATION_0
+                            //  )
+                        )//)
                         .build()
                     val cameraSelector = cameraSelectors[currentCamera]
                     val recorder = Recorder.Builder()
@@ -152,7 +174,11 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
                         )
                         .build()
 
-                    videoCapture = VideoCapture.withOutput(recorder)
+                    videoCapture = VideoCapture.withOutput(recorder).apply {
+                        targetRotation = //getJpegOrientation(
+                            view?.display?.rotation ?: ROTATION_0
+                        //)
+                    }
                     try {
                         cameraProvider.bindToLifecycle(
                             this, cameraSelector, preview, imageCapture, videoCapture
@@ -249,14 +275,21 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
     }
 
     private fun takePhoto(context: Context) {
-        val outputFileOptions =
+        val outputFileOptionsBuilder =
             ImageCapture.OutputFileOptions.Builder(
                 File(
                     context.filesDir,
                     "ugc_photo.jpg"
                 )
-            ).build()
-        imageCapture.takePicture(outputFileOptions, cameraExecutor, this)
+            ).apply {
+                if (currentCamera == 1) {
+                    val metadata = ImageCapture.Metadata()
+                    metadata.isReversedHorizontal = true
+                    this.setMetadata(metadata)
+                }
+            }
+
+        imageCapture.takePicture(outputFileOptionsBuilder.build(), cameraExecutor, this)
     }
 
     override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {

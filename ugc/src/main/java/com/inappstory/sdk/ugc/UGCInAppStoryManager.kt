@@ -1,11 +1,9 @@
 package com.inappstory.sdk.ugc
 
+import android.R.id.message
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.os.Build
 import android.provider.Settings
-import android.util.Log
 import androidx.core.util.Pair
 import com.inappstory.sdk.InAppStoryManager
 import com.inappstory.sdk.network.JsonParser
@@ -18,32 +16,46 @@ import com.inappstory.sdk.ugc.editor.EmptyUGCEditorCallback
 import com.inappstory.sdk.ugc.editor.UGCEditor
 import kotlinx.coroutines.*
 import java.util.*
-import kotlin.collections.HashMap
+
 
 object UGCInAppStoryManager {
-    internal var currentEditor: UGCEditor? = null
 
     var editorCallback: UGCEditorCallback = EmptyUGCEditorCallback()
+    lateinit var appContext: Context
+
+    private var latestCloseCallback: (() -> Unit) = {}
 
     fun closeEditor(closeCallback: (() -> Unit) = {}) {
+        latestCloseCallback = closeCallback
         CoroutineScope(Dispatchers.Main).launch {
-            currentEditor?.close(closeCallback)
-            currentEditor = null
+            closeUGCEditor()
         }
+    }
+
+
+    private fun closeUGCEditor() {
+        val intent = Intent("closeUGCEditor")
+        intent.setPackage(appContext.packageName)
+        appContext.sendBroadcast(intent)
+    }
+
+    fun invokeCloseCallback() {
+        latestCloseCallback.invoke()
+        latestCloseCallback = {}
     }
 
     fun openEditor(
         context: Context,
         ugcInitData: HashMap<String, Any?>? = null
     ) {
+        appContext = context.applicationContext
         if (InAppStoryManager.getInstance() == null) return
         SessionManager.getInstance().useOrOpenSession(object : OpenSessionCallback {
             override fun onSuccess() {
                 ScreensManager.getInstance().ugcCloseCallback =
                     ScreensManager.CloseUgcReaderCallback {
                         CoroutineScope(Dispatchers.Main).launch {
-                            currentEditor?.close()
-                            currentEditor = null
+                            closeUGCEditor()
                         }
                     }
                 val config = genEditorConfig(context, ugcInitData)

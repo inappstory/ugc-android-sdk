@@ -1,4 +1,4 @@
-package com.inappstory.sdk.ugc.camera;
+package com.inappstory.sdk.ugc.camerax;
 
 import android.animation.Animator;
 import android.animation.AnimatorInflater;

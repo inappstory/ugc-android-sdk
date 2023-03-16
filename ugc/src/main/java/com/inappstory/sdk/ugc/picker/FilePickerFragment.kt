@@ -196,6 +196,12 @@ internal class FilePickerFragment : Fragment() {
             messages["warns_file_picker_files_limit"] ?: "You can select up to 10 files"
         val allowMultiple = arguments?.getBoolean("allowMultiple") ?: false
         val filePickerFilesLimit = arguments?.getInt("filePickerFilesLimit") ?: 10
+        val filePickerPhotoSizeLimit =
+            arguments?.getLong("filePickerImageMaxSizeInBytes") ?: 10000000L
+        val filePickerVideoSizeLimit =
+            arguments?.getLong("filePickerVideoMaxSizeInBytes") ?: 10000000L
+        val filePickerFileDurationLimit =
+            arguments?.getLong("filePickerVideoMaxLengthInSeconds") ?: 10
         previews?.load(
             hasFileAccess,
             allowMultiple,
@@ -226,7 +232,12 @@ internal class FilePickerFragment : Fragment() {
             },
             galleryAccessText,
             filePickerFilesLimit,
-            galleryFileLimitText
+            galleryFileLimitText,
+            PickerFilter(
+                filePickerPhotoSizeLimit,
+                filePickerVideoSizeLimit,
+                1000L * filePickerFileDurationLimit
+            )
         )
     }
 

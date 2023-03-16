@@ -1,16 +1,14 @@
 package com.inappstory.sdk.ugc.picker
 
 import android.content.Context
-import android.database.Cursor
-import android.database.MergeCursor
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
 import androidx.core.database.getLongOrNull
 
-data class PickerFilter(val size: Long, val duration: Long)
+data class PickerFilter(val imageSize: Long, val videoSize: Long, val duration: Long)
 
+data class UriAndType(val uri: Uri, val type: String)
 
 abstract class FilePicker {
     abstract fun openCamera(context: Context)
@@ -25,7 +23,7 @@ abstract class FilePicker {
 
     protected fun getImagesPath(
         context: Context,
-        uri: List<Uri>,
+        uri: List<UriAndType>,
         pickerFilter: PickerFilter,
         mimeTypes: List<String>?
     ): List<FileData> {
@@ -46,12 +44,15 @@ abstract class FilePicker {
         )
         uri.forEach {
             val mergeCursor = context.contentResolver.query(
-                it,
+                it.uri,
                 projection,
                 null,
                 null,
                 null
             )
+
+            val fileFilterSize =
+                if (it.type == "video") pickerFilter.videoSize else pickerFilter.imageSize
             val columnIndexDate: Int =
                 mergeCursor!!.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED)
             val columnIndexSize: Int =
@@ -66,7 +67,7 @@ abstract class FilePicker {
                 if (mimeTypes != null && mimeTypes.contains(mergeCursor.getString(columnIndexMT))) {
                     val duration = mergeCursor.getLongOrNull(columnIndexDuration)
                     val size = mergeCursor.getLongOrNull(columnIndexSize)
-                    if ((pickerFilter.size >= (size ?: 0L)) && (pickerFilter.duration >= (duration
+                    if ((fileFilterSize >= (size ?: 0L)) && (pickerFilter.duration >= (duration
                             ?: 0L))
                     ) {
                         listOfAllImages.add(

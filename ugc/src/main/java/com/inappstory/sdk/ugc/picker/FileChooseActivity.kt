@@ -63,6 +63,18 @@ internal class FileChooseActivity : AppCompatActivity() {
                     "filePickerFilesLimit",
                     intent.getIntExtra("filePickerFilesLimit", 10)
                 )
+                putLong(
+                    "filePickerImageMaxSizeInBytes",
+                    intent.getLongExtra("filePickerImageMaxSizeInBytes",30000000L)
+                )
+                putLong(
+                    "filePickerVideoMaxSizeInBytes",
+                    intent.getLongExtra("filePickerVideoMaxSizeInBytes",30000000L)
+                )
+                putLong(
+                    "filePickerVideoMaxLengthInSeconds",
+                    intent.getLongExtra("filePickerVideoMaxLengthInSeconds",30L)
+                )
                 putStringArray(
                     "messages",
                     intent.getStringArrayExtra("messages")

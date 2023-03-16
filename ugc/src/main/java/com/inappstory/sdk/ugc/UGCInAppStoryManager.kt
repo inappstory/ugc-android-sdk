@@ -34,7 +34,7 @@ object UGCInAppStoryManager {
 
 
     private fun closeUGCEditor() {
-        val intent = Intent("closeUGCEditor")
+        val intent = Intent(UGCEditor.CLOSE_UGC_EDITOR_MSG)
         intent.setPackage(appContext.packageName)
         appContext.sendBroadcast(intent)
     }
@@ -61,7 +61,14 @@ object UGCInAppStoryManager {
                 val config = genEditorConfig(context, ugcInitData)
                 val configSt = JsonParser.getJson(config)
                 val messages = Session.getInstance()?.editor?.messages
-                val galleryFileMaxCount = config.config?.getOrElse("filePickerFilesLimit") { 10 } as Int
+                val galleryFileMaxCount =
+                    config.config?.getOrElse("filePickerFilesLimit") { 10 } as Int
+                val filePickerPhotoSizeLimit =
+                    config.config?.getOrElse("filePickerImageMaxSizeInBytes") { 30000000L } as Long
+                val filePickerVideoSizeLimit =
+                    config.config?.getOrElse("filePickerVideoMaxSizeInBytes") { 30000000L } as Long
+                val filePickerFileDurationLimit =
+                    config.config?.getOrElse("filePickerVideoMaxLengthInSeconds") { 30L } as Long
                 CoroutineScope(Dispatchers.Main).launch {
                     val intent = Intent(
                         context,
@@ -73,6 +80,12 @@ object UGCInAppStoryManager {
                         intent.putExtra("messages", values.toTypedArray())
                     }
                     intent.putExtra("filePickerFilesLimit", galleryFileMaxCount)
+                    intent.putExtra("filePickerImageMaxSizeInBytes", filePickerPhotoSizeLimit)
+                    intent.putExtra("filePickerVideoMaxSizeInBytes", filePickerVideoSizeLimit)
+                    intent.putExtra(
+                        "filePickerVideoMaxLengthInSeconds",
+                        filePickerFileDurationLimit
+                    )
                     intent.putExtra("editorConfig", configSt)
                     intent.putExtra("url", Session.getInstance()?.editor?.url ?: "")
                     context.startActivity(intent)

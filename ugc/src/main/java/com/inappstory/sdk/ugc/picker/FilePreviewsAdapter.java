@@ -44,7 +44,8 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
                                NoAccessCallback noAccessCallback,
                                String galleryAccessText,
                                int galleryFileMaxCount,
-                               String galleryFileLimitText) {
+                               String galleryFileLimitText,
+                               PickerFilter pickerFilter) {
         this.noAccessCallback = noAccessCallback;
         this.galleryFileMaxCount = galleryFileMaxCount;
         this.galleryFileLimitText = galleryFileLimitText;
@@ -58,7 +59,7 @@ class FilePreviewsAdapter extends RecyclerView.Adapter<FilePreviewsHolder> {
             previews.addAll(
                     picker.getImagesPath(
                             context,
-                            new PickerFilter(30000000L, 30000L),
+                            pickerFilter,
                             mimeTypes
                     )
             );

@@ -41,7 +41,8 @@ public class FilePreviewsList extends RecyclerView {
                      NoAccessCallback noAccessCallback,
                      String galleryAccessText,
                      int galleryFileMaxCount,
-                     String galleryFileLimitText) {
+                     String galleryFileLimitText,
+                     PickerFilter pickerFilter) {
         FilePreviewsAdapter adapter = new FilePreviewsAdapter(getContext(),
                 hasFileAccess,
                 allowMultipleSelection,
@@ -51,7 +52,9 @@ public class FilePreviewsList extends RecyclerView {
                 noAccessCallback,
                 galleryAccessText,
                 galleryFileMaxCount,
-                galleryFileLimitText
+                galleryFileLimitText,
+                pickerFilter
+
         );
         adapter.setHasStableIds(true);
         setAdapter(adapter);

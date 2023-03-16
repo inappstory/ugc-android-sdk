@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -73,6 +74,39 @@ internal class UGCEditor : AppCompatActivity() {
 
     private fun loadJsApiResponse(gameResponse: String, cb: String) {
         webView.evaluateJavascript("$cb('$gameResponse');", null)
+    }
+
+    private var editorState: String? = null
+
+    internal companion object {
+        const val EDITOR_STATE_KEY = "editorState"
+        const val CLOSE_UGC_EDITOR_MSG = "closeUGCEditor"
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString(EDITOR_STATE_KEY, editorState)
+        super.onSaveInstanceState(outState)
+        editorState = null
+    }
+
+
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        editorState = savedInstanceState.getString(EDITOR_STATE_KEY)
+        super.onRestoreInstanceState(savedInstanceState)
+    }
+
+    private fun recreateEditor() {
+        editorState?.let {
+            val js = "window.editorApi.onRestoreInstanceState($it);"
+            if (this::webView.isInitialized) {
+                webView.evaluateJavascript(
+                    js,
+                    null
+                )
+                webView.alpha = 0f
+            }
+        }
     }
 
     fun sendApiRequest(data: String?) {
@@ -143,7 +177,18 @@ internal class UGCEditor : AppCompatActivity() {
 
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
 
+    private fun saveEditorState() {
+        if (this::webView.isInitialized) {
+            webView.evaluateJavascript(
+                "window.editorApi.onSaveInstanceState();"
+            ) { s ->
+                editorState = s
+            }
+        }
+    }
+
     private fun pauseEditor() {
+
         if (this::webView.isInitialized) {
             webView.evaluateJavascript("window.editorApi.pauseUI();", null)
             webView.alpha = 0f
@@ -159,6 +204,7 @@ internal class UGCEditor : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        saveEditorState()
         pauseEditor()
     }
 
@@ -175,6 +221,7 @@ internal class UGCEditor : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        recreateEditor()
         resumeEditor()
     }
 
@@ -192,12 +239,12 @@ internal class UGCEditor : AppCompatActivity() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 if (intent == null) return
                 when (intent.action) {
-                    "closeUGCEditor" -> close()
+                    CLOSE_UGC_EDITOR_MSG -> close()
                 }
             }
 
         }
-        val filter = IntentFilter("closeUGCEditor")
+        val filter = IntentFilter(CLOSE_UGC_EDITOR_MSG)
         registerReceiver(broadcastReceiver, filter)
     }
 
@@ -235,6 +282,12 @@ internal class UGCEditor : AppCompatActivity() {
         val messageNames = intent.getStringArrayExtra("messageNames")
         val messages = intent.getStringArrayExtra("messages")
         val filePickerFilesLimit = intent.getIntExtra("filePickerFilesLimit", 10)
+        val filePickerPhotoSizeLimit =
+            intent.getLongExtra("filePickerImageMaxSizeInBytes",30000000L)
+        val filePickerVideoSizeLimit =
+            intent.getLongExtra("filePickerVideoMaxSizeInBytes", 30000000L)
+        val filePickerFileDurationLimit =
+            intent.getLongExtra("filePickerVideoMaxLengthInSeconds", 30)
         webView.webChromeClient = object : WebChromeClient() {
             var init = false
             override fun onShowFileChooser(
@@ -259,6 +312,9 @@ internal class UGCEditor : AppCompatActivity() {
                     fileChooserParams?.mode == FileChooserParams.MODE_OPEN_MULTIPLE
                 )
                 intent.putExtra("filePickerFilesLimit", filePickerFilesLimit)
+                intent.putExtra("filePickerImageMaxSizeInBytes", filePickerPhotoSizeLimit)
+                intent.putExtra("filePickerVideoMaxSizeInBytes", filePickerVideoSizeLimit)
+                intent.putExtra("filePickerVideoMaxLengthInSeconds", filePickerFileDurationLimit)
                 startActivityForResult(intent, CHOOSE_FILE_REQUEST_CODE)
                 return true
             }

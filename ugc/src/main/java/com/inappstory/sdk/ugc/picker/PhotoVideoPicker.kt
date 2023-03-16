@@ -15,10 +15,10 @@ internal class PhotoVideoPicker : FilePicker() {
         return getImagesPath(
             context = context,
             uri = listOf(
-                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                MediaStore.Video.Media.INTERNAL_CONTENT_URI,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                MediaStore.Images.Media.INTERNAL_CONTENT_URI
+                UriAndType(uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI, "video"),
+                UriAndType(uri = MediaStore.Video.Media.INTERNAL_CONTENT_URI, "video"),
+                UriAndType(uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "photo"),
+                UriAndType(uri = MediaStore.Images.Media.INTERNAL_CONTENT_URI, "photo"),
             ),
             pickerFilter = pickerFilter,
             mimeTypes = mimeTypes

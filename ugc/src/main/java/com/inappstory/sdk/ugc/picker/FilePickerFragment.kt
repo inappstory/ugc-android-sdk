@@ -31,7 +31,7 @@ internal class FilePickerFragment : Fragment() {
     }
 
     private lateinit var uploadButton: FloatingActionButton
-    private var previews: FilePreviewsList? = null
+    private lateinit var previews: FilePreviewsList
 
     var acceptTypes: ArrayList<String> = arrayListOf()
     val selectedFiles = hashSetOf<String>()
@@ -58,7 +58,7 @@ internal class FilePickerFragment : Fragment() {
                     this.requestPermissions(localPerms.toTypedArray(), STORAGE_PERMISSIONS_RESULT)
                 }
             } else {
-                if (!loaded)
+                if (!loaded || previews.adapter?.itemCount == 0)
                     loadPreviews(true)
             }
         }
@@ -201,7 +201,7 @@ internal class FilePickerFragment : Fragment() {
             arguments?.getLong("filePickerVideoMaxSizeInBytes") ?: 10000000L
         val filePickerFileDurationLimit =
             arguments?.getLong("filePickerVideoMaxLengthInSeconds") ?: 10
-        previews?.load(
+        previews.load(
             hasFileAccess,
             allowMultiple,
             acceptTypes,

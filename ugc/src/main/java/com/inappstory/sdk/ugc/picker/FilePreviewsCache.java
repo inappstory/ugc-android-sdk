@@ -3,12 +3,11 @@ package com.inappstory.sdk.ugc.picker;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.media.ExifInterface;
+import androidx.exifinterface.media.ExifInterface;
 import android.media.ThumbnailUtils;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.util.LruCache;
 import android.widget.ImageView;
 
@@ -24,8 +23,8 @@ import java.util.concurrent.Executors;
 public class FilePreviewsCache {
     private LruCache<String, Bitmap> memoryCache;
 
+    private final int MAX_THREADS = 6;
 
-    private static int MAX_THREADS = 6;
     ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREADS);
 
     boolean noCache = false;
@@ -61,10 +60,6 @@ public class FilePreviewsCache {
         }
     }
 
-    public interface FileLoadCallback {
-        void onLoaded();
-    }
-
     public void loadPreview(String path, ImageView imageView, boolean isVideo) {
         if (isVideo) loadVideoThumbnail(path, imageView);
         else loadBitmap(path, imageView, noCache);
@@ -82,10 +77,8 @@ public class FilePreviewsCache {
                     memoryCache.put(path, loaded);
                 }
                 try {
-                    new Handler(Looper.getMainLooper()).post(() -> {
-                        imageView.setImageBitmap(loaded);
-                    });
-                } catch (Exception e) {
+                    new Handler(Looper.getMainLooper()).post(() -> imageView.setImageBitmap(loaded));
+                } catch (Exception ignored) {
                 }
             });
         }
@@ -99,11 +92,9 @@ public class FilePreviewsCache {
             if (noCache) {
                 File file = new File(path);
                 executorService.submit(() -> {
-                    Bitmap loaded = decodeFile(file, true);
+                    Bitmap loaded = decodeFile(file);
                     try {
-                        new Handler(Looper.getMainLooper()).post(() -> {
-                            imageView.setImageBitmap(loaded);
-                        });
+                        new Handler(Looper.getMainLooper()).post(() -> imageView.setImageBitmap(loaded));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -114,14 +105,13 @@ public class FilePreviewsCache {
         }
     }
 
-    public static int getExifInformation(String filePath) throws IOException {
+    private int getExifInformation(String filePath) throws IOException {
         ExifInterface ei = new ExifInterface(filePath);
         return ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
     }
 
-    private static Bitmap rotateImageIfRequired(Bitmap img, String filePath) throws IOException {
+    private Bitmap rotateImageIfRequired(Bitmap img, String filePath) throws IOException {
         int orientation = getExifInformation(filePath);
-        Log.e("exif_orientation", "" + orientation);
         switch (orientation) {
             case ExifInterface.ORIENTATION_FLIP_HORIZONTAL:
                 return flipImage(img);
@@ -147,7 +137,7 @@ public class FilePreviewsCache {
         boolean started = false;
     }
 
-    private Object queueLock = new Object();
+    private final Object queueLock = new Object();
 
     HashMap<String, QueuedTask> tasks = new HashMap<>();
 
@@ -158,18 +148,22 @@ public class FilePreviewsCache {
             int minPriority = 99999;
             int startedCount = 0;
             for (String taskKey : tasks.keySet()) {
-                if (tasks.get(taskKey).started) {
+                QueuedTask cur = tasks.get(taskKey);
+                if (cur == null) continue;
+                if (cur.started) {
                     startedCount++;
                     continue;
                 }
                 if (startedCount >= MAX_THREADS) return null;
-                if (minPriority > tasks.get(taskKey).priority) {
-                    minPriority = tasks.get(taskKey).priority;
+                if (minPriority > cur.priority) {
+                    minPriority = cur.priority;
                     minTaskKey = taskKey;
                 }
             }
             if (minTaskKey != null) {
-                tasks.get(minTaskKey).started = true;
+                QueuedTask cur = tasks.get(minTaskKey);
+                if (cur != null)
+                    cur.started = true;
             }
             return minTaskKey;
         }
@@ -201,7 +195,7 @@ public class FilePreviewsCache {
         if (key != null) {
             synchronized (memCacheLock) {
                 executorService.submit(() -> {
-                    Bitmap loaded = decodeFile(new File(key), noCache);
+                    Bitmap loaded = decodeFile(new File(key));
                     QueuedTask task = tasks.get(key);
                     if (!noCache) {
                         memoryCache.put(key, loaded);
@@ -212,7 +206,7 @@ public class FilePreviewsCache {
                             if (task != null)
                                 task.imageView.setImageBitmap(loaded);
                         });
-                    } catch (Exception e) {
+                    } catch (Exception ignored) {
                     }
                 });
             }
@@ -249,7 +243,7 @@ public class FilePreviewsCache {
         return rotatedImg;
     }
 
-    private Bitmap decodeFile(File f, boolean noCache) {
+    private Bitmap decodeFile(File f) {
         try {
             BitmapFactory.Options o = new BitmapFactory.Options();
             o.inJustDecodeBounds = true;
@@ -257,27 +251,23 @@ public class FilePreviewsCache {
             final int REQUIRED_SIZE = Sizes.dpToPxExt(200);
             int width_tmp = o.outWidth, height_tmp = o.outHeight;
             int scale = 1;
-            while (true) {
-                if (width_tmp / 2 < REQUIRED_SIZE && height_tmp / 2 < REQUIRED_SIZE)
-                    break;
+            while (width_tmp / 2 >= REQUIRED_SIZE || height_tmp / 2 >= REQUIRED_SIZE) {
                 width_tmp /= 2;
                 height_tmp /= 2;
                 scale *= 2;
             }
             o.inJustDecodeBounds = false;
             o.inSampleSize = scale;
-            //  o.inBitmap
-            //  FileInputStream fileInputStream = new FileInputStream(f);
             Bitmap bitmap = BitmapFactory.decodeFile(f.getAbsolutePath(), o);
             return rotateImageIfRequired(bitmap, f.getAbsolutePath());
             //
-        } catch (Exception ignored) {
-            ignored.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return null;
     }
 
-    private Object memCacheLock = new Object();
+    private final Object memCacheLock = new Object();
 
     private Bitmap getBitmap(String path) {
         synchronized (memCacheLock) {

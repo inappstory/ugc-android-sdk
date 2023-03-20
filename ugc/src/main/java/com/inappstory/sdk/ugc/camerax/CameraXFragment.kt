@@ -17,6 +17,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.inappstory.sdk.stories.utils.Sizes
 import com.inappstory.sdk.ugc.R
@@ -36,9 +37,10 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
 
 
     private lateinit var cameraButton: CameraButton
-    private lateinit var changeCameraButton: View
+    private lateinit var changeCameraButton: FloatingActionButton
     private lateinit var previewView: PreviewView
     private lateinit var videoProgress: CircularProgressIndicator
+    private lateinit var cameraText: View
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -71,6 +73,7 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
         cameraButton = view.findViewById(R.id.cameraButton)
         videoProgress = view.findViewById(R.id.videoProgress)
         changeCameraButton = view.findViewById(R.id.changeCam)
+        cameraText = view.findViewById(R.id.cameraText)
         context?.let { ctx ->
             cameraExecutor = ContextCompat.getMainExecutor(ctx)
             cameraButton.actions = object : CameraButton.OnAction {
@@ -137,6 +140,16 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
     }
 
     private lateinit var cameraProvider: ProcessCameraProvider
+
+    private fun hideShowElements(hide: Boolean) {
+        if (hide) {
+            changeCameraButton.hide()
+            cameraText.animate().alpha(0f)
+        } else {
+            changeCameraButton.show()
+            cameraText.animate().alpha(1f)
+        }
+    }
 
     @SuppressLint("RestrictedApi")
     private fun startCameraPreview(context: Context) {
@@ -212,7 +225,7 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
                 .start(cameraExecutor) {
                     when (it) {
                         is VideoRecordEvent.Start -> {
-                            Log.e("CameraXFragment", "Video Start")
+                            hideShowElements(hide = true)
                             videoIsStarted = true
                             job = viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                                 val startTime = System.currentTimeMillis()
@@ -228,6 +241,7 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
                         }
                         is VideoRecordEvent.Finalize -> {
                             try {
+
                                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                                     if (videoIsStarted) {
                                         stopVideo()
@@ -269,6 +283,7 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
         videoIsStarted = false
         recording?.stop()
         withContext(Dispatchers.Main) {
+            hideShowElements(hide = false)
             cameraButton.stop()
             videoProgress.visibility = View.INVISIBLE
         }

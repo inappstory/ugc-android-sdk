@@ -10,7 +10,7 @@ internal class PhotoVideoPicker : FilePicker() {
     override fun getImagesPath(
         context: Context,
         pickerFilter: PickerFilter,
-        mimeTypes: List<String>?
+        mimeTypes: List<String>
     ): List<FileData> {
         return getImagesPath(
             context = context,

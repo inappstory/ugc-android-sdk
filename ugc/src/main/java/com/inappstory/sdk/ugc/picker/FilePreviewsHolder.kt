@@ -1,16 +1,10 @@
-package com.inappstory.sdk.ugc.picker;
+package com.inappstory.sdk.ugc.picker
 
-import android.view.View;
+import android.view.View
+import androidx.recyclerview.widget.RecyclerView
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-
-class FilePreviewsHolder extends RecyclerView.ViewHolder {
-
-    boolean isActive = false;
-    String path;
-
-    public FilePreviewsHolder(@NonNull View itemView) {
-        super(itemView);
-    }
+internal class FilePreviewsHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    var isActive = false
+    @JvmField
+    var path: String? = null
 }

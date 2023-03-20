@@ -30,10 +30,10 @@ internal class FilePickerFragment : Fragment() {
         return inflater.inflate(R.layout.cs_file_picker_fragment, null)
     }
 
-    private var uploadButton: FloatingActionButton? = null
+    private lateinit var uploadButton: FloatingActionButton
     private var previews: FilePreviewsList? = null
 
-    var acceptTypes: ArrayList<String>? = null
+    var acceptTypes: ArrayList<String> = arrayListOf()
     val selectedFiles = hashSetOf<String>()
 
     private val STORAGE_PERMISSIONS_RESULT = 888
@@ -109,17 +109,16 @@ internal class FilePickerFragment : Fragment() {
             if (messageNames != null && messageValues != null) {
                 messages.putAll(messageNames.zip(messageValues).toMap())
             }
-            acceptTypes = getStringArrayList("acceptTypes")
+            acceptTypes = getStringArrayList("acceptTypes") ?: arrayListOf()
             messages["button_no_gallery_access"]?.let {
                 galleryAccessText = it
             }
         }
-
-        if (acceptTypes == null) {
+        if (acceptTypes.isEmpty()) {
             activity?.onBackPressed()
             return
         }
-        uploadButton?.setOnClickListener {
+        uploadButton.setOnClickListener {
             if (activity is FileChooseActivity && selectedFiles.isNotEmpty()) {
                 (activity as FileChooseActivity).sendResultMultiple(selectedFiles.toTypedArray())
             }
@@ -210,13 +209,13 @@ internal class FilePickerFragment : Fragment() {
                 override fun select(filePath: String) {
                     selectedFiles.add(filePath)
                     //selectedFile = filePath
-                    uploadButton?.show()
+                    uploadButton.show()
                 }
 
                 override fun unselect(filePath: String) {
                     selectedFiles.remove(filePath)
                     if (selectedFiles.isEmpty())
-                        uploadButton?.hide()
+                        uploadButton.hide()
                 }
             },
             object : OpenCameraClickCallback {

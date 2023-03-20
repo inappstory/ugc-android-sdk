@@ -18,14 +18,14 @@ abstract class FilePicker {
     abstract fun getImagesPath(
         context: Context,
         pickerFilter: PickerFilter,
-        mimeTypes: List<String>?
+        mimeTypes: List<String>
     ): List<FileData>
 
     protected fun getImagesPath(
         context: Context,
         uri: List<UriAndType>,
         pickerFilter: PickerFilter,
-        mimeTypes: List<String>?
+        mimeTypes: List<String>
     ): List<FileData> {
         val listOfAllImages = ArrayList<FileData>()
         val durationColumn =
@@ -64,7 +64,7 @@ abstract class FilePicker {
             val columnIndexMT: Int =
                 mergeCursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE)
             while (mergeCursor.moveToNext()) {
-                if (mimeTypes != null && mimeTypes.contains(mergeCursor.getString(columnIndexMT))) {
+                if (mimeTypes.contains(mergeCursor.getString(columnIndexMT))) {
                     val duration = mergeCursor.getLongOrNull(columnIndexDuration)
                     val size = mergeCursor.getLongOrNull(columnIndexSize)
                     if ((fileFilterSize >= (size ?: 0L)) && (pickerFilter.duration >= (duration

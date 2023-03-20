@@ -1,64 +1,50 @@
-package com.inappstory.sdk.ugc.picker;
+package com.inappstory.sdk.ugc.picker
 
-import android.content.Context;
-import android.util.AttributeSet;
+import android.content.Context
+import android.util.AttributeSet
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+class FilePreviewsList @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyle: Int = 0
+) : RecyclerView(context, attrs, defStyle) {
 
-import java.util.List;
-
-public class FilePreviewsList extends RecyclerView {
-    public FilePreviewsList(@NonNull Context context) {
-        super(context);
-        init(context);
+    init {
+        layoutManager = GridLayoutManager(
+            context, 3,
+            GridLayoutManager.VERTICAL,
+            false
+        )
     }
 
-    public FilePreviewsList(@NonNull Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
-        init(context);
+    fun load(
+        hasFileAccess: Boolean,
+        allowMultipleSelection: Boolean,
+        mimeTypes: List<String>,
+        clickCallback: FileClickCallback,
+        cameraCallback: OpenCameraClickCallback,
+        noAccessCallback: NoAccessCallback,
+        galleryAccessText: String,
+        galleryFileMaxCount: Int,
+        galleryFileLimitText: String,
+        pickerFilter: PickerFilter
+    ) {
+        val adapter = FilePreviewsAdapter(
+            context,
+            hasFileAccess,
+            allowMultipleSelection,
+            mimeTypes,
+            clickCallback,
+            cameraCallback,
+            noAccessCallback,
+            galleryAccessText,
+            galleryFileMaxCount,
+            galleryFileLimitText,
+            pickerFilter
+        )
+        adapter.setHasStableIds(true)
+        setAdapter(adapter)
     }
-
-    public FilePreviewsList(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        init(context);
-    }
-
-    private void init(@NonNull Context context) {
-        setLayoutManager(new GridLayoutManager(context, 3,
-                GridLayoutManager.VERTICAL,
-                false));
-    }
-
-    public void load(
-                     boolean hasFileAccess,
-                     boolean allowMultipleSelection,
-                     List<String> mimeTypes,
-                     FileClickCallback clickCallback,
-                     OpenCameraClickCallback cameraCallback,
-                     NoAccessCallback noAccessCallback,
-                     String galleryAccessText,
-                     int galleryFileMaxCount,
-                     String galleryFileLimitText,
-                     PickerFilter pickerFilter) {
-        FilePreviewsAdapter adapter = new FilePreviewsAdapter(getContext(),
-                hasFileAccess,
-                allowMultipleSelection,
-                mimeTypes,
-                clickCallback,
-                cameraCallback,
-                noAccessCallback,
-                galleryAccessText,
-                galleryFileMaxCount,
-                galleryFileLimitText,
-                pickerFilter
-
-        );
-        adapter.setHasStableIds(true);
-        setAdapter(adapter);
-    }
-
-
 }

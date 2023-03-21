@@ -283,7 +283,7 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
         videoIsStarted = false
         recording?.stop()
         withContext(Dispatchers.Main) {
-            hideShowElements(hide = false)
+            //hideShowElements(hide = false)
             cameraButton.stop()
             videoProgress.visibility = View.INVISIBLE
         }
@@ -321,7 +321,7 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
         }
         delay(300)
         withContext(Dispatchers.Main) {
-            (activity as FileChooseActivity).openPreviewScreen(
+            (parentFragment as CameraFlowFragment).openPreviewScreen(
                 isVideo = isVideo,
                 filePath = filePath
             )

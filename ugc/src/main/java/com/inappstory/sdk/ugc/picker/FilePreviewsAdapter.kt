@@ -2,6 +2,7 @@ package com.inappstory.sdk.ugc.picker
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -139,7 +140,7 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
                             }
                         }
                     }
-                    notifyDataSetChanged()
+                    notifyChanges()
                 }
             } else {
                 val text = holder.itemView.findViewById<TextView>(R.id.gallery_access_text)
@@ -149,6 +150,10 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
         } else {
             holder.itemView.setOnClickListener { cameraCallback.open() }
         }
+    }
+
+    private fun notifyChanges() {
+        notifyDataSetChanged()
     }
 
     override fun getItemViewType(position: Int): Int =
@@ -170,5 +175,9 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
 
     override fun getItemId(position: Int): Long = if (position == 0) -1 else position.toLong()
 
-    override fun getItemCount(): Int = (if (hasFileAccess) previews.size else 1) + 1
+    override fun getItemCount(): Int {
+        val count = (if (hasFileAccess) previews.size else 1) + 1
+        Log.e("adapterChanges", "getItemCount $count")
+        return count
+    }
 }

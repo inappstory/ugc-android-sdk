@@ -7,6 +7,7 @@ internal class EditorConfig {
     var config: HashMap<String, Any?>? = null
     var lang: String? = null
     var sdkVersion: String? = null
+    var ugcSdkVersion: String? = null
     var appPackageId: String? = null
     var deviceId: String? = null
     var userId: String? = null

@@ -1,6 +1,5 @@
 package com.inappstory.sdk.ugc
 
-import android.R.id.message
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
@@ -117,6 +116,7 @@ object UGCInAppStoryManager {
             lang = (Locale.getDefault().toLanguageTag()).lowercase()
             appPackageId = context.packageName
             sdkVersion = InAppStoryManager.getLibraryVersion().first
+            ugcSdkVersion = getLibraryVersion().first
             sessionId = Session.getInstance()?.id ?: ""
             config = Session.getInstance()?.editor?.config
             apiKey = InAppStoryManager.getInstance().apiKey

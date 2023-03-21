@@ -9,16 +9,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import com.inappstory.sdk.ugc.R
-import com.inappstory.sdk.ugc.camerax.CameraXFragment
-import com.inappstory.sdk.ugc.camerax.PhotoPreviewFragment
-import com.inappstory.sdk.ugc.camerax.VideoPreviewFragment
-import java.util.*
+import com.inappstory.sdk.ugc.camerax.BackPressedFragment
+import com.inappstory.sdk.ugc.camerax.CameraFlowFragment
 
 
 internal class FileChooseActivity : AppCompatActivity() {
     val picker: FilePicker? = null
-
-    var currentFragment: Fragment? = null
 
     @TargetApi(23)
     private fun askPermissions() {
@@ -65,15 +61,15 @@ internal class FileChooseActivity : AppCompatActivity() {
                 )
                 putLong(
                     "filePickerImageMaxSizeInBytes",
-                    intent.getLongExtra("filePickerImageMaxSizeInBytes",30000000L)
+                    intent.getLongExtra("filePickerImageMaxSizeInBytes", 30000000L)
                 )
                 putLong(
                     "filePickerVideoMaxSizeInBytes",
-                    intent.getLongExtra("filePickerVideoMaxSizeInBytes",30000000L)
+                    intent.getLongExtra("filePickerVideoMaxSizeInBytes", 30000000L)
                 )
                 putLong(
                     "filePickerVideoMaxLengthInSeconds",
-                    intent.getLongExtra("filePickerVideoMaxLengthInSeconds",30L)
+                    intent.getLongExtra("filePickerVideoMaxLengthInSeconds", 30L)
                 )
                 putStringArray(
                     "messages",
@@ -97,6 +93,7 @@ internal class FileChooseActivity : AppCompatActivity() {
         }
     }
 
+
     private fun addFragment(fragment: Fragment, tag: String) {
         try {
             val fragmentManager =
@@ -111,10 +108,13 @@ internal class FileChooseActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (supportFragmentManager.backStackEntryCount == 1)
-            finish()
-        else
-            super.onBackPressed()
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.fragments_layout)
+        if (currentFragment !is BackPressedFragment || !currentFragment.onBackPressed()) {
+            if (supportFragmentManager.backStackEntryCount == 1)
+                finish()
+            else
+                super.onBackPressed()
+        }
     }
 
     fun sendResult(filePath: String) {
@@ -131,8 +131,8 @@ internal class FileChooseActivity : AppCompatActivity() {
         finish()
     }
 
-    fun openFilePickerScreen(bundle: Bundle) {
-        currentFragment = FilePickerFragment().apply {
+    private fun openFilePickerScreen(bundle: Bundle) {
+        FilePickerFragment().apply {
             arguments = bundle
             openFragment(this, "UGC_FILE_CHOOSE")
         }
@@ -151,10 +151,9 @@ internal class FileChooseActivity : AppCompatActivity() {
     }
 
     fun openFileCameraScreen(bundle: Bundle) {
-        currentFragment = CameraXFragment().apply {
-            bundle.putString("fileName", UUID.randomUUID().toString())
+        CameraFlowFragment().apply {
             arguments = bundle
-            addFragment(this, "UGC_CAMERA")
+            addFragment(this, "UGC_CAMERA_FLOW")
         }
     }
 
@@ -162,18 +161,5 @@ internal class FileChooseActivity : AppCompatActivity() {
 
     fun loadPreview(path: String, imageView: ImageView, isVideo: Boolean) {
         cache.loadPreview(path, imageView, isVideo)
-    }
-
-    fun openPreviewScreen(isVideo: Boolean, filePath: String) {
-        currentFragment = (if (isVideo) {
-            VideoPreviewFragment()
-        } else {
-            PhotoPreviewFragment()
-        }).apply {
-            arguments = Bundle().apply {
-                putString("filePath", filePath)
-            }
-            openFragment(this, "UGC_PREVIEW")
-        }
     }
 }

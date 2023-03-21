@@ -15,9 +15,10 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.inappstory.sdk.ugc.R
+import com.inappstory.sdk.ugc.camerax.BackPressedFragment
 
 
-internal class FilePickerFragment : Fragment() {
+internal class FilePickerFragment : BackPressedFragment() {
 
 
     override fun onCreateView(

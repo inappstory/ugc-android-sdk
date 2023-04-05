@@ -283,7 +283,11 @@ internal class FilePickerFragment : BackPressedFragment() {
             loaded = false
             (activity as FileChooseActivity).openFileCameraScreen(
                 Bundle().also {
-                    it.putBoolean("isVideo", true)
+                    it.putString(
+                        "cameraHint",
+                        messages["title_camera_button"] ?: "Tap for photo, hold for video"
+                    )
+                    it.putInt("contentType", arguments?.getInt("contentType", 0) ?: 0)
                 }
             )
         }

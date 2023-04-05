@@ -35,18 +35,19 @@ internal class FileChooseActivity : AppCompatActivity() {
             requestPermissions(permissions.toTypedArray(), 200)
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.cs_file_choose_activity)
 
-        // askPermissions()
+
+
         if (savedInstanceState == null) {
             val bundle = Bundle().apply {
                 putStringArrayList(
                     "acceptTypes",
                     intent.getStringArrayListExtra("acceptTypes")
                 )
+                putInt("contentType", intent.getIntExtra("contentType", 0))
                 putStringArray(
                     "messageNames",
                     intent.getStringArrayExtra("messageNames")

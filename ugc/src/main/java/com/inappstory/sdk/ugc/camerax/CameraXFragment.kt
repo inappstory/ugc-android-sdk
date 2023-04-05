@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.view.Surface.ROTATION_0
+import android.widget.TextView
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.*
@@ -21,7 +22,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.inappstory.sdk.stories.utils.Sizes
 import com.inappstory.sdk.ugc.R
-import com.inappstory.sdk.ugc.picker.FileChooseActivity
 import kotlinx.coroutines.*
 import java.io.File
 import java.util.concurrent.Executor
@@ -40,7 +40,7 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
     private lateinit var changeCameraButton: FloatingActionButton
     private lateinit var previewView: PreviewView
     private lateinit var videoProgress: CircularProgressIndicator
-    private lateinit var cameraText: View
+    private lateinit var cameraText: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,7 +54,6 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
     private var videoIsStarted: Boolean = false
     private var limitInMillis = 30000L
     private var limitVideoInBytes = 30000000L
-
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -70,19 +69,37 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
             layoutParams.height = y
             requestLayout()
         }
+        val contentType = arguments?.getInt("contentType", 0) ?: 0
+        val cameraHint = arguments?.getString("cameraHint")
         cameraButton = view.findViewById(R.id.cameraButton)
+        cameraButton.isStatic = (contentType == 1)
         videoProgress = view.findViewById(R.id.videoProgress)
         changeCameraButton = view.findViewById(R.id.changeCam)
         cameraText = view.findViewById(R.id.cameraText)
+        cameraHint?.let {
+            cameraText.text = it
+        }
+        if (contentType != 0) cameraText.visibility = View.GONE
         context?.let { ctx ->
             cameraExecutor = ContextCompat.getMainExecutor(ctx)
             cameraButton.actions = object : CameraButton.OnAction {
                 override fun onClick() {
-                    takePhoto(ctx)
+                    when (contentType) {
+                        0, 1 -> takePhoto(ctx)
+                        2 -> if (videoIsStarted) {
+                            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                                stopVideo()
+                            }
+                        } else {
+                            prepareAndStart(ctx)
+                        }
+                    }
                 }
 
                 override fun onLongPressDown() {
-                    prepareAndStart(ctx)
+                    when (contentType) {
+                        0, 2 -> prepareAndStart(ctx)
+                    }
                 }
 
                 override fun onLongPressUp() {

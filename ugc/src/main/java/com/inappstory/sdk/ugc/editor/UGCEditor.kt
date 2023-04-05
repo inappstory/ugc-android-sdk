@@ -90,7 +90,6 @@ internal class UGCEditor : AppCompatActivity() {
     }
 
 
-
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         editorState = savedInstanceState.getString(EDITOR_STATE_KEY)
         super.onRestoreInstanceState(savedInstanceState)
@@ -283,7 +282,7 @@ internal class UGCEditor : AppCompatActivity() {
         val messages = intent.getStringArrayExtra("messages")
         val filePickerFilesLimit = intent.getIntExtra("filePickerFilesLimit", 10)
         val filePickerPhotoSizeLimit =
-            intent.getLongExtra("filePickerImageMaxSizeInBytes",30000000L)
+            intent.getLongExtra("filePickerImageMaxSizeInBytes", 30000000L)
         val filePickerVideoSizeLimit =
             intent.getLongExtra("filePickerVideoMaxSizeInBytes", 30000000L)
         val filePickerFileDurationLimit =
@@ -296,15 +295,32 @@ internal class UGCEditor : AppCompatActivity() {
                 fileChooserParams: FileChooserParams?
             ): Boolean {
 
+                val acceptTypes = (fileChooserParams?.acceptTypes?.asList() ?: emptyList<String>())
+                var hasVideo = false
+                var hasPhoto = false
+                acceptTypes.forEach {
+                    if (it.startsWith("image")) hasPhoto = true
+                    if (it.startsWith("video")) hasVideo = true
+                }
+                if (!(hasVideo || hasPhoto)) return false
                 this@UGCEditor.filePathCallback = filePathCallback
                 val intent = Intent(
                     this@UGCEditor,
                     FileChooseActivity::class.java
                 )
+
+                intent.putExtra(
+                    "contentType", when {
+                        hasVideo && hasPhoto -> 0 //Mix
+                        hasVideo -> 2 //Video
+                        else -> 1 //Photo
+                    }
+                )
                 intent.putStringArrayListExtra(
                     "acceptTypes",
                     ArrayList(fileChooserParams?.acceptTypes?.asList() ?: emptyList<String>())
                 )
+
                 intent.putExtra("messageNames", messageNames)
                 intent.putExtra("messages", messages)
                 intent.putExtra(

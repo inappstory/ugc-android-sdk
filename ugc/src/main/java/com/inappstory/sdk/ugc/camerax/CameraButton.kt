@@ -32,6 +32,7 @@ class CameraButton @JvmOverloads constructor(
     }
 
     var started = false
+    var isStatic = false
 
     lateinit var actions: OnAction
     private var gradientDrawable: GradientDrawable
@@ -66,7 +67,6 @@ class CameraButton @JvmOverloads constructor(
     }
 
 
-
     private fun setGestureDetector(context: Context) {
         mGestureDetector = GestureDetector(context,
             object : SimpleOnGestureListener() {
@@ -82,9 +82,11 @@ class CameraButton @JvmOverloads constructor(
                 }
 
                 override fun onLongPress(e: MotionEvent) {
-                    onLongPressed = true
-                    start()
-                    actions.onLongPressDown()
+                    if (!isStatic) {
+                        onLongPressed = true
+                        start()
+                        actions.onLongPressDown()
+                    }
                 }
             })
     }

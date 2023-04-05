@@ -18,7 +18,6 @@ class CameraFlowFragment : BackPressedFragment() {
     }
 
 
-
     private fun openFragment(fragment: Fragment, tag: String, addToBackStack: Boolean = true) {
         try {
             val fragmentManager =
@@ -35,7 +34,14 @@ class CameraFlowFragment : BackPressedFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        openFragment(fragment = CameraXFragment(), tag = "UGC_CAMERA_X", addToBackStack = false)
+        val contentType = arguments?.getInt("contentType", 0) ?: 0
+        val cameraHint = arguments?.getString("cameraHint")
+        openFragment(fragment = CameraXFragment().apply {
+            arguments = Bundle().apply {
+                putInt("contentType", contentType)
+                putString("cameraHint", cameraHint)
+            }
+        }, tag = "UGC_CAMERA_X", addToBackStack = false)
     }
 
     fun openPreviewScreen(isVideo: Boolean, filePath: String) {

@@ -1,7 +1,9 @@
 package com.inappstory.sdk.ugc.editor
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -33,7 +35,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
-import java.util.ArrayList
 import kotlin.math.max
 
 internal class UGCEditor : AppCompatActivity() {
@@ -45,8 +46,15 @@ internal class UGCEditor : AppCompatActivity() {
     private lateinit var loaderView: IGameLoaderView
     private lateinit var baseContainer: View
 
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O
+            && Build.VERSION.SDK_INT != Build.VERSION_CODES.O_MR1
+        ) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         UGCInAppStoryManager.currentEditor = this
         setContentView(R.layout.cs_activity_ugc)

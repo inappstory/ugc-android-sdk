@@ -1,8 +1,11 @@
 package com.inappstory.sdk.ugc.editor
 
+import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -38,9 +41,16 @@ internal class FileChooseActivity : AppCompatActivity() {
     }
 
 
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.cs_file_choose_activity)
+        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O
+            && Build.VERSION.SDK_INT != Build.VERSION_CODES.O_MR1
+        ) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
         val isVideo = intent.getStringExtra("type").equals("video")
 
        // askPermissions()

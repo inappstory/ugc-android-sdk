@@ -46,11 +46,6 @@ internal class FileChooseActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.cs_file_choose_activity)
-        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O
-            && Build.VERSION.SDK_INT != Build.VERSION_CODES.O_MR1
-        ) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        }
         val isVideo = intent.getStringExtra("type").equals("video")
 
        // askPermissions()

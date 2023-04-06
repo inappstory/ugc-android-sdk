@@ -49,11 +49,6 @@ internal class UGCEditor : AppCompatActivity() {
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O
-            && Build.VERSION.SDK_INT != Build.VERSION_CODES.O_MR1
-        ) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        }
 
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         UGCInAppStoryManager.currentEditor = this

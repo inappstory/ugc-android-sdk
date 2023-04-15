@@ -7,6 +7,6 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "UgcInAppStorySDK"
-include ':app'
+
 include ':ugc'
 //include ':inappstorysdk'

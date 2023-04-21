@@ -96,12 +96,13 @@ internal class FilePickerFragment : BackPressedFragment() {
     private var dialogShown = false
 
     private val appPerms = arrayListOf(
-        Manifest.permission.READ_EXTERNAL_STORAGE,
         Manifest.permission.WRITE_EXTERNAL_STORAGE,
     ).apply {
         if (Build.VERSION.SDK_INT >= 33) {
             add("android.permission.READ_MEDIA_IMAGES")
             add("android.permission.READ_MEDIA_VIDEO")
+        } else {
+            add(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
     }.toTypedArray()
 

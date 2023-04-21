@@ -102,10 +102,15 @@ internal class FilePickerFragment : Fragment() {
     private var loaded = false
     private var dialogShown = false
 
-    private val appPerms = arrayOf(
+    private val appPerms = arrayListOf(
         Manifest.permission.READ_EXTERNAL_STORAGE,
         Manifest.permission.WRITE_EXTERNAL_STORAGE,
-    )
+    ).apply {
+        if (Build.VERSION.SDK_INT >= 33) {
+            add("android.permission.READ_MEDIA_IMAGES")
+            add("android.permission.READ_MEDIA_VIDEO")
+        }
+    }.toTypedArray()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

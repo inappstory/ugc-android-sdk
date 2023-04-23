@@ -31,4 +31,13 @@ internal class UGCJSInterface(val editor: UGCEditor) {
             editor.sendEditorEvent(it, payload)
         }
     }
+
+    @JavascriptInterface
+    fun openFilePicker(data: String) {
+        val config = JsonParser.fromJson(
+            data,
+            EditorOpenFilePickerResult::class.java
+        )
+        editor.openFilePicker(config)
+    }
 }

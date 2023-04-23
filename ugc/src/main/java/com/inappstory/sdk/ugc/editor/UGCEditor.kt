@@ -9,14 +9,16 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.webkit.ConsoleMessage
-import android.webkit.ValueCallback
+import android.webkit.MimeTypeMap
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
@@ -38,6 +40,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileInputStream
 import kotlin.math.max
 
 
@@ -122,6 +125,8 @@ internal class UGCEditor : AppCompatActivity() {
     var config: String? = null
     var ugcLoaded = false
     var handleBack = false
+    var openFilePickerCbName: String? = null
+    var openFilePickerCbId: String? = null
 
     fun updateUI() {
         CoroutineScope(Dispatchers.Main).launch {
@@ -173,8 +178,6 @@ internal class UGCEditor : AppCompatActivity() {
         }
         loaderContainer.addView(loaderView.view)
     }
-
-    private var filePathCallback: ValueCallback<Array<Uri>>? = null
 
     private fun saveEditorState() {
         if (this::webView.isInitialized) {
@@ -278,62 +281,8 @@ internal class UGCEditor : AppCompatActivity() {
             ), "Android"
         )
 
-        val messageNames = intent.getStringArrayExtra("messageNames")
-        val messages = intent.getStringArrayExtra("messages")
-        val filePickerFilesLimit = intent.getIntExtra("filePickerFilesLimit", 10)
-        val filePickerPhotoSizeLimit =
-            intent.getLongExtra("filePickerImageMaxSizeInBytes", 30000000L)
-        val filePickerVideoSizeLimit =
-            intent.getLongExtra("filePickerVideoMaxSizeInBytes", 30000000L)
-        val filePickerFileDurationLimit =
-            intent.getLongExtra("filePickerVideoMaxLengthInSeconds", 30)
         webView.webChromeClient = object : WebChromeClient() {
             var init = false
-            override fun onShowFileChooser(
-                webView: WebView?,
-                filePathCallback: ValueCallback<Array<Uri>>?,
-                fileChooserParams: FileChooserParams?
-            ): Boolean {
-
-                val acceptTypes = (fileChooserParams?.acceptTypes?.asList() ?: emptyList<String>())
-                var hasVideo = false
-                var hasPhoto = false
-                acceptTypes.forEach {
-                    if (it.startsWith("image")) hasPhoto = true
-                    if (it.startsWith("video")) hasVideo = true
-                }
-                if (!(hasVideo || hasPhoto)) return false
-                this@UGCEditor.filePathCallback = filePathCallback
-                val intent = Intent(
-                    this@UGCEditor,
-                    FileChooseActivity::class.java
-                )
-
-                intent.putExtra(
-                    "contentType", when {
-                        hasVideo && hasPhoto -> 0 //Mix
-                        hasVideo -> 2 //Video
-                        else -> 1 //Photo
-                    }
-                )
-                intent.putStringArrayListExtra(
-                    "acceptTypes",
-                    ArrayList(fileChooserParams?.acceptTypes?.asList() ?: emptyList<String>())
-                )
-
-                intent.putExtra("messageNames", messageNames)
-                intent.putExtra("messages", messages)
-                intent.putExtra(
-                    "allowMultiple",
-                    fileChooserParams?.mode == FileChooserParams.MODE_OPEN_MULTIPLE
-                )
-                intent.putExtra("filePickerFilesLimit", filePickerFilesLimit)
-                intent.putExtra("filePickerImageMaxSizeInBytes", filePickerPhotoSizeLimit)
-                intent.putExtra("filePickerVideoMaxSizeInBytes", filePickerVideoSizeLimit)
-                intent.putExtra("filePickerVideoMaxLengthInSeconds", filePickerFileDurationLimit)
-                startActivityForResult(intent, CHOOSE_FILE_REQUEST_CODE)
-                return true
-            }
 
             override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
                 Log.d(
@@ -353,6 +302,43 @@ internal class UGCEditor : AppCompatActivity() {
                         init = true
                         initEditor(config)
                     }
+                }
+            }
+        }
+
+        webView.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(
+                view: WebView,
+                request: WebResourceRequest
+            ): WebResourceResponse? {
+                // `http://file-assets` - special protocol and Uri first part
+                // Bcz WebView can`t fetch with `file` protocol
+                return if (request.url.toString().startsWith("http://file-assets")) {
+
+                    // convert to normal Uri and get decoded path (decode %20 to space and etc)
+                    val filePath = Uri.parse(request.url.toString().replace("http://file-assets", "file://")).path
+                    if (filePath != null) {
+
+                        val file = File(filePath)
+                        if (file.exists()) {
+
+                            val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+                                MimeTypeMap.getFileExtensionFromUrl(filePath)
+                            )
+
+                            WebResourceResponse(mimeType, "utf-8", FileInputStream(file))
+
+                        } else {
+                            Log.d("InAppStory_UGC", "File ${filePath} not exists")
+                            super.shouldInterceptRequest(view, request)
+                        }
+                    } else {
+                        Log.d("InAppStory_UGC", "Empty filePath for Uri ${request.url}")
+                        super.shouldInterceptRequest(view, request)
+                    }
+
+                } else {
+                    super.shouldInterceptRequest(view, request)
                 }
             }
         }
@@ -404,19 +390,26 @@ internal class UGCEditor : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             CHOOSE_FILE_REQUEST_CODE -> {
-                var arr: Array<Uri> = arrayOf()
+                var arr: Array<String> = arrayOf()
+
                 if (resultCode == Activity.RESULT_OK) {
                     val files = data?.getStringArrayExtra("files")
                     if (files != null) {
                         arr = files.map {
-                            Uri.fromFile(File(it))
+                            // `http://file-assets` - special protocol and Uri first part
+                            // Bcz WebView can`t fetch with `file` protocol
+                            Uri.fromFile(File(it)).toString().replace("file://", "http://file-assets")
                         }.toTypedArray()
                     }
                 }
-                filePathCallback?.onReceiveValue(
-                    arr
-                )
-                filePathCallback = null
+
+                val responseMap = mapOf("id" to openFilePickerCbId, "response" to arr)
+                val payload = JsonParser.mapToJsonString(responseMap).replace("'".toRegex(), "\\'")
+
+                val initST = "window.editorApi.${openFilePickerCbName}('${payload}');"
+                webView.evaluateJavascript(initST, null)
+
+                openFilePickerCbId = null
             }
         }
     }
@@ -439,6 +432,66 @@ internal class UGCEditor : AppCompatActivity() {
             finish()
         }
     }
+
+    fun openFilePicker(
+        config: EditorOpenFilePickerResult
+    ): Void? {
+
+        openFilePickerCbName = config.cb
+        openFilePickerCbId = config.id
+
+
+        val acceptTypes = config.accept.split(",")
+        var hasVideo = false
+        var hasPhoto = false
+        acceptTypes.forEach {
+            if (it.startsWith("image")) hasPhoto = true
+            if (it.startsWith("video")) hasVideo = true
+        }
+        if (!(hasVideo || hasPhoto)) return null;
+
+        val intent = Intent(
+            this@UGCEditor,
+            FileChooseActivity::class.java
+        )
+
+        intent.putExtra(
+            "contentType", when {
+                hasVideo && hasPhoto -> 0 //Mix
+                hasVideo -> 2 //Video
+                else -> 1 //Photo
+            }
+        )
+
+        val messageNames = intent.getStringArrayExtra("messageNames")
+        val messages = intent.getStringArrayExtra("messages")
+        val filePickerFilesLimit = intent.getIntExtra("filePickerFilesLimit", 10)
+        val filePickerPhotoSizeLimit =
+            intent.getLongExtra("filePickerImageMaxSizeInBytes", 30000000L)
+        val filePickerVideoSizeLimit =
+            intent.getLongExtra("filePickerVideoMaxSizeInBytes", 30000000L)
+        val filePickerFileDurationLimit =
+            intent.getLongExtra("filePickerVideoMaxLengthInSeconds", 30)
+
+        intent.putStringArrayListExtra(
+            "acceptTypes",
+            ArrayList(acceptTypes)
+        )
+
+        intent.putExtra("messageNames", messageNames)
+        intent.putExtra("messages", messages)
+        intent.putExtra(
+            "allowMultiple",
+            config.multiple == true
+        )
+        intent.putExtra("filePickerFilesLimit", filePickerFilesLimit)
+        intent.putExtra("filePickerImageMaxSizeInBytes", filePickerPhotoSizeLimit)
+        intent.putExtra("filePickerVideoMaxSizeInBytes", filePickerVideoSizeLimit)
+        intent.putExtra("filePickerVideoMaxLengthInSeconds", filePickerFileDurationLimit)
+        startActivityForResult(intent, CHOOSE_FILE_REQUEST_CODE)
+        return null;
+    }
+
 }
 
 

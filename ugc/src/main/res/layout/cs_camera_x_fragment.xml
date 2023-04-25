@@ -28,7 +28,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginLeft="50dp"
         android:layout_marginRight="50dp"
-        android:layout_marginBottom="90dp">
+        android:layout_marginBottom="92dp">
 
         <RelativeLayout
             android:layout_width="wrap_content"
@@ -71,7 +71,7 @@
         android:layout_alignParentBottom="true"
         android:elevation="8dp"
         android:layout_centerInParent="true"
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="60dp"
         android:gravity="center"
         android:text="Tap for photo, hold for video"
         android:textColor="@color/white" />

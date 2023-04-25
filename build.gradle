@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext {
-        inappstory_version = "3a6c7802045c7df89f12bd5671b85f24dee391cf"
+        inappstory_version = "718f7757affc73f1bd0858de948d51ea2ae658a8"
         camerax_version = "1.1.0"
         coroutines_version = "1.6.0"
         core_ktx_version = "1.6.0"

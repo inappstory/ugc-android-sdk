@@ -3,6 +3,7 @@ package com.inappstory.sdk.ugc
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
+import android.util.Log
 import androidx.core.util.Pair
 import com.inappstory.sdk.InAppStoryManager
 import com.inappstory.sdk.network.JsonParser
@@ -23,6 +24,10 @@ object UGCInAppStoryManager {
     lateinit var appContext: Context
 
     private var latestCloseCallback: (() -> Unit) = {}
+
+    init {
+        Log.e("initObj", "UGCInAppStoryManager")
+    }
 
     fun closeEditor(closeCallback: (() -> Unit) = {}) {
         latestCloseCallback = closeCallback
@@ -86,7 +91,7 @@ object UGCInAppStoryManager {
                         filePickerFileDurationLimit
                     )
                     intent.putExtra("editorConfig", configSt)
-                    intent.putExtra("url", Session.getInstance()?.editor?.url ?: "")
+                    intent.putExtra("url", getActualUGCUrl())
                     context.startActivity(intent)
                 }
             }
@@ -95,7 +100,26 @@ object UGCInAppStoryManager {
 
             }
         })
+    }
 
+    private fun getActualUGCUrl(): String {
+        Session.getInstance()?.apply {
+            if (editor == null) return ""
+            if (editor.versionsMap.isNullOrEmpty() ||
+                editor.versionTemplate.isNullOrEmpty() ||
+                editor.urlTemplate.isNullOrEmpty()
+            ) return editor.url ?: ""
+            var actualVer: String? = null
+            editor.versionsMap.sortedByDescending { it.minBuild }.forEach {
+                actualVer = it.editor
+                if (BuildConfig.VERSION_CODE >= it.minBuild) return@forEach
+            }
+            actualVer?.let {
+                return editor.urlTemplate.replace(editor.versionTemplate, it)
+            }
+            return editor.url ?: ""
+        }
+        return ""
     }
 
     fun getLibraryVersion(): Pair<String?, Int?> {

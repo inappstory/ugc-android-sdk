@@ -1,23 +1,16 @@
 package com.inappstory.sdk.ugc.editor
 
 import android.webkit.JavascriptInterface
-import com.inappstory.sdk.network.JsonParser
 
 internal class UGCJSInterface(val editor: UGCEditor) {
     @JavascriptInterface
     fun editorLoaded(data: String) {
-        editor.ugcLoaded = true
-        val config = JsonParser.fromJson(
-            data,
-            EditorLoadedResult::class.java
-        )
-        editor.handleBack = config.backHandler ?: false
-        editor.updateUI()
+        editor.editorLoaded(data)
     }
 
     @JavascriptInterface
     fun closeEditor() {
-        editor.finish()
+        editor.closeEditor()
     }
 
     @JavascriptInterface
@@ -30,5 +23,10 @@ internal class UGCJSInterface(val editor: UGCEditor) {
         event.let {
             editor.sendEditorEvent(it, payload)
         }
+    }
+
+    @JavascriptInterface
+    fun openFilePicker(data: String) {
+        editor.openFilePicker(data)
     }
 }

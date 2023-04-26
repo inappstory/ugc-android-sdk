@@ -404,8 +404,13 @@ internal class UGCEditor : AppCompatActivity() {
                 var arr: Array<String> = arrayOf()
                 if (resultCode == Activity.RESULT_OK) {
                     val files = data?.getStringArrayExtra("files")
+                    files?.forEach {
+
+                        Log.e("UGC_files", "array file: $it")
+                    }
                     if (files != null) {
                         arr = files.map {
+                            Log.e("UGC_files", "map file: $it")
                             Uri.fromFile(File(it)).toString()
                                 .replace("file://", "http://file-assets")
                         }.toTypedArray()

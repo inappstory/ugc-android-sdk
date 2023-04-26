@@ -34,8 +34,8 @@ internal class FilePickerFragment : BackPressedFragment() {
     private lateinit var uploadButton: FloatingActionButton
     private lateinit var previews: FilePreviewsList
 
-    var acceptTypes: ArrayList<String> = arrayListOf()
-    val selectedFiles = hashSetOf<String>()
+    var acceptTypes = arrayListOf<String>()
+    val selectedFiles = arrayListOf<String>()
 
     private val STORAGE_PERMISSIONS_RESULT = 888
     private val CAMERA_PERMISSIONS_RESULT = 890

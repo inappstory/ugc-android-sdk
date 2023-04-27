@@ -401,17 +401,17 @@ internal class UGCEditor : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             CHOOSE_FILE_REQUEST_CODE -> {
-                var arr: Array<String> = arrayOf()
+                var arr = arrayOf<String>()
                 if (resultCode == Activity.RESULT_OK) {
                     val files = data?.getStringArrayExtra("files")
-                    if (files != null) {
-                        arr = files.map {
-                            Uri.fromFile(File(it)).toString()
-                                .replace("file://", "http://file-assets")
-                        }.toTypedArray()
-                    }
+
+                    arr = files?.map {
+                        Uri.fromFile(File(it)).toString()
+                            .replace("file://", "http://file-assets")
+                    }?.toTypedArray() ?: emptyArray()
                 }
-                val responseMap = mapOf("id" to openFilePickerCbId, "response" to arr)
+                val responseMap =
+                    mapOf("id" to openFilePickerCbId, "response" to arr)
                 val payload = JsonParser.mapToJsonString(responseMap).replace("'".toRegex(), "\\'")
                 val initST = "window.editorApi.${openFilePickerCbName}('${payload}');"
                 webView.evaluateJavascript(initST, null)

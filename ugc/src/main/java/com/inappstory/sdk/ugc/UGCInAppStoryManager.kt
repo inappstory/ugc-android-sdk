@@ -25,10 +25,6 @@ object UGCInAppStoryManager {
 
     private var latestCloseCallback: (() -> Unit) = {}
 
-    init {
-        Log.e("initObj", "UGCInAppStoryManager")
-    }
-
     fun closeEditor(closeCallback: (() -> Unit) = {}) {
         latestCloseCallback = closeCallback
         CoroutineScope(Dispatchers.Main).launch {

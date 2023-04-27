@@ -175,9 +175,5 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
 
     override fun getItemId(position: Int): Long = if (position == 0) -1 else position.toLong()
 
-    override fun getItemCount(): Int {
-        val count = (if (hasFileAccess) previews.size else 1) + 1
-        Log.e("adapterChanges", "getItemCount $count")
-        return count
-    }
+    override fun getItemCount(): Int = (if (hasFileAccess) previews.size else 1) + 1
 }

@@ -170,7 +170,6 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
 
     @SuppressLint("RestrictedApi")
     private fun startCameraPreview(context: Context) {
-        Log.e("currentRotation", "${getJpegOrientation(view?.display?.rotation ?: ROTATION_0)}")
         ProcessCameraProvider.getInstance(context).let { cameraProviderFuture ->
             cameraProviderFuture.addListener(
                 {
@@ -346,6 +345,6 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
     }
 
     override fun onError(exception: ImageCaptureException) {
-        Log.e("ImageCaptureError", exception.stackTraceToString())
+        Log.d("ImageCaptureError", exception.stackTraceToString())
     }
 }

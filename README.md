@@ -10,11 +10,12 @@ Version's compapibility
 
 | UGC SDK version                  | InAppStory SDK version 		|
 |----------------------------------|------------------------------------|
-|   1.0.0 - 1.0.2                  | 1.9.1 - 1.11.1                     |
-|   1.0.4 	                   | 1.12.0-rc2                         |
-|   1.0.5                          | 1.12.0-rc3+                        |
+|   1.1.0                          | 1.15.0-rc1                        	|
+|   1.0.7                          | 1.12.4                         	|
 |   1.0.6                          | 1.12.0-rc7                         |
-|   1.0.7                          | 1.12.4                         |
+|   1.0.5                          | 1.12.0-rc3+                        |
+|   1.0.4 	                   | 1.12.0-rc2                         |
+|   1.0.0 - 1.0.2                  | 1.9.1 - 1.11.1                     |
 
 
 The library is intended for Phone and Tablet projects (not intended for Android TV or Android Wear applications).
@@ -38,7 +39,7 @@ implementation("com.github.inappstory:android-sdk:$inappstory_version") {
 }
 ```
 
-And then add dependency to UGC library (Latest release version is 1.0.9):
+And then add dependency to UGC library (Latest release version is 1.1.0):
 
 ```gradle
 implementation("com.github.inappstory:ugc-android-sdk:$ugc_version") {
@@ -56,7 +57,7 @@ You can use same Proguard rules as [InAppStory Proguard rules](https://github.co
 
 1) [Initialize InAppStory SDK](https://github.com/inappstory/android-sdk#sdk-initialization)
 2) In [AppearanceManager](https://github.com/inappstory/android-sdk#sdk-initialization) (in global or for `StoriesList`) you need to set `csHasUgc` as true.
-3) For `StoriesList` set click callback from UGC item with `setOnUGCItemClick(OnUGCItemClick callback)`. In callback you can open Editor with method from `UGCInAppStoryManager.openEditor(Context ctx)`
+3) For `StoriesList` set click callback from UGC item with `setOnUGCItemClick(callback: OnUGCItemClick)`. In callback you can open Editor with method from `UGCInAppStoryManager.openEditor(ctx: Context, ugcInitData: HashMap<String, Any?>? = null)`
 
 For example:
 

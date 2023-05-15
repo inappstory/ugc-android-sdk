@@ -207,11 +207,22 @@ internal class FilePickerFragment : BackPressedFragment() {
             arguments?.getLong("filePickerVideoMaxSizeInBytes") ?: 10000000L
         val filePickerFileDurationLimit =
             arguments?.getLong("filePickerVideoMaxLengthInSeconds") ?: 10
+        val fileLimitPhotoSize = messages["title_image_max_size_limit"] ?: "File is too large"
+        val fileLimitVideoSize = messages["title_video_max_size_limit"] ?: "File is too large"
+        val fileLimitVideoDuration = messages["title_video_max_duration_limit"] ?: "File is too large"
+
+        val translations = mapOf(
+            "galleryFileLimitText" to galleryFileLimitText,
+            "galleryAccessText" to galleryAccessText,
+            "fileLimitPhotoSize" to fileLimitPhotoSize,
+            "fileLimitVideoSize" to fileLimitVideoSize,
+            "fileLimitVideoDuration" to fileLimitVideoDuration
+        )
         previews.load(
-            hasFileAccess,
-            allowMultiple,
-            acceptTypes,
-            object : FileClickCallback {
+            hasFileAccess = hasFileAccess,
+            allowMultipleSelection = allowMultiple,
+            mimeTypes = acceptTypes,
+            clickCallback = object : FileClickCallback {
                 override fun select(filePath: String) {
                     selectedFiles.add(filePath)
                     //selectedFile = filePath
@@ -224,25 +235,24 @@ internal class FilePickerFragment : BackPressedFragment() {
                         uploadButton.hide()
                 }
             },
-            object : OpenCameraClickCallback {
+            cameraCallback = object : OpenCameraClickCallback {
                 override fun open() {
                     checkCameraPermissions()
                     //openCameraScreen(isVideo)
                 }
             },
-            object : NoAccessCallback {
+            noAccessCallback = object : NoAccessCallback {
                 override fun click() {
                     checkStoragePermissions()
                 }
             },
-            galleryAccessText,
-            filePickerFilesLimit,
-            galleryFileLimitText,
-            PickerFilter(
+            galleryFileMaxCount = filePickerFilesLimit,
+            pickerFilter = PickerFilter(
                 filePickerPhotoSizeLimit,
                 filePickerVideoSizeLimit,
                 1000L * filePickerFileDurationLimit
-            )
+            ),
+            translations = translations
         )
     }
 

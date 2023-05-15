@@ -23,9 +23,9 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
     var noAccessCallback: NoAccessCallback
     var hasFileAccess = false
     var allowMultipleSelection = false
-    var galleryAccessText: String
     var galleryFileMaxCount = 0
-    var galleryFileLimitText: String
+
+    var translations: Map<String, String> = emptyMap()
 
     constructor(
         context: Context?,
@@ -35,15 +35,13 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
         clickCallback: FileClickCallback,
         cameraCallback: OpenCameraClickCallback,
         noAccessCallback: NoAccessCallback,
-        galleryAccessText: String,
         galleryFileMaxCount: Int,
-        galleryFileLimitText: String,
+        translations: Map<String, String>,
         pickerFilter: PickerFilter
     ) {
         this.noAccessCallback = noAccessCallback
+        this.translations = translations
         this.galleryFileMaxCount = galleryFileMaxCount
-        this.galleryFileLimitText = galleryFileLimitText
-        this.galleryAccessText = galleryAccessText
         this.cameraCallback = cameraCallback
         this.clickCallback = clickCallback
         this.hasFileAccess = hasFileAccess
@@ -93,7 +91,9 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
         val intPos = Integer.valueOf(position - 1)
         if (position != 0) {
             if (hasFileAccess) {
-                val (path, duration) = previews[position - 1]
+                val file = previews[position - 1]
+                val path = file.name
+                val duration = file.duration
                 holder.itemView.isSelected = activePositions.contains(intPos)
                 val iv = holder.itemView.findViewById<ImageView>(R.id.image)
                 if (iv != null) {
@@ -114,17 +114,34 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
                 } else {
                     count.visibility = View.GONE
                 }
+                if (file.unavailableByDuration || file.unavailableBySize) {
+                    count.text = "!"
+                    count.visibility = View.VISIBLE
+                }
                 holder.itemView.setOnClickListener {
-                    if (activePositions.contains(intPos)) {
+                    if (file.unavailableByDuration) {
+                        showToast(
+                            holder.itemView.context,
+                            translations["fileLimitVideoDuration"] ?: ""
+                        )
+                    } else if (file.unavailableBySize) {
+                        showToast(
+                            holder.itemView.context,
+                            (if (file.type == "video") {
+                                translations["fileLimitVideoSize"]
+                            } else {
+                                translations["fileLimitPhotoSize"]
+                            }) ?: ""
+                        )
+                    } else if (activePositions.contains(intPos)) {
                         clickCallback.unselect(path)
                         activePositions.remove(intPos)
                     } else {
                         if (activePositions.size >= galleryFileMaxCount) {
-                            Toast.makeText(
+                            showToast(
                                 holder.itemView.context,
-                                galleryFileLimitText,
-                                Toast.LENGTH_SHORT
-                            ).show()
+                                translations["galleryFileLimitText"] ?: ""
+                            )
                             return@setOnClickListener
                         }
                         activePositions.add(intPos)
@@ -144,12 +161,20 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
                 }
             } else {
                 val text = holder.itemView.findViewById<TextView>(R.id.gallery_access_text)
-                text.text = galleryAccessText
+                text.text = translations["galleryAccessText"] ?: ""
                 holder.itemView.setOnClickListener { noAccessCallback.click() }
             }
         } else {
             holder.itemView.setOnClickListener { cameraCallback.open() }
         }
+    }
+
+    private fun showToast(context: Context, text: String) {
+        Toast.makeText(
+            context,
+            text,
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun notifyChanges() {

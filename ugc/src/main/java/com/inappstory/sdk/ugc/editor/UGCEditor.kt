@@ -459,12 +459,12 @@ internal class UGCEditor : AppCompatActivity() {
         }
         if (!(hasVideo || hasPhoto)) return null;
 
-        val intent = Intent(
+        val newIntent = Intent(
             this@UGCEditor,
             FileChooseActivity::class.java
         )
 
-        intent.putExtra(
+        newIntent.putExtra(
             "contentType", when {
                 hasVideo && hasPhoto -> 0 //Mix
                 hasVideo -> 2 //Video
@@ -482,22 +482,22 @@ internal class UGCEditor : AppCompatActivity() {
         val filePickerFileDurationLimit =
             intent.getLongExtra("filePickerVideoMaxLengthInSeconds", 30)
 
-        intent.putStringArrayListExtra(
+        newIntent.putStringArrayListExtra(
             "acceptTypes",
             ArrayList(acceptTypes)
         )
 
-        intent.putExtra("messageNames", messageNames)
-        intent.putExtra("messages", messages)
-        intent.putExtra(
+        newIntent.putExtra("messageNames", messageNames)
+        newIntent.putExtra("messages", messages)
+        newIntent.putExtra(
             "allowMultiple",
             config.multiple == true
         )
-        intent.putExtra("filePickerFilesLimit", filePickerFilesLimit)
-        intent.putExtra("filePickerImageMaxSizeInBytes", filePickerPhotoSizeLimit)
-        intent.putExtra("filePickerVideoMaxSizeInBytes", filePickerVideoSizeLimit)
-        intent.putExtra("filePickerVideoMaxLengthInSeconds", filePickerFileDurationLimit)
-        startActivityForResult(intent, CHOOSE_FILE_REQUEST_CODE)
+        newIntent.putExtra("filePickerFilesLimit", filePickerFilesLimit)
+        newIntent.putExtra("filePickerImageMaxSizeInBytes", filePickerPhotoSizeLimit)
+        newIntent.putExtra("filePickerVideoMaxSizeInBytes", filePickerVideoSizeLimit)
+        newIntent.putExtra("filePickerVideoMaxLengthInSeconds", filePickerFileDurationLimit)
+        startActivityForResult(newIntent, CHOOSE_FILE_REQUEST_CODE)
         return null;
     }
 

@@ -26,23 +26,21 @@ class FilePreviewsList @JvmOverloads constructor(
         clickCallback: FileClickCallback,
         cameraCallback: OpenCameraClickCallback,
         noAccessCallback: NoAccessCallback,
-        galleryAccessText: String,
         galleryFileMaxCount: Int,
-        galleryFileLimitText: String,
+        translations: Map<String, String>,
         pickerFilter: PickerFilter
     ) {
         val adapter = FilePreviewsAdapter(
-            context,
-            hasFileAccess,
-            allowMultipleSelection,
-            mimeTypes,
-            clickCallback,
-            cameraCallback,
-            noAccessCallback,
-            galleryAccessText,
-            galleryFileMaxCount,
-            galleryFileLimitText,
-            pickerFilter
+            context = context,
+            hasFileAccess = hasFileAccess,
+            allowMultipleSelection = allowMultipleSelection,
+            mimeTypes = mimeTypes,
+            clickCallback = clickCallback,
+            cameraCallback = cameraCallback,
+            noAccessCallback = noAccessCallback,
+            galleryFileMaxCount = galleryFileMaxCount,
+            pickerFilter = pickerFilter,
+            translations = translations
         )
         adapter.setHasStableIds(true)
         setAdapter(adapter)

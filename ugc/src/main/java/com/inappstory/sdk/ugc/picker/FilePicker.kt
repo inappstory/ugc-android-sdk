@@ -13,7 +13,14 @@ data class UriAndType(val uri: Uri, val type: String)
 abstract class FilePicker {
     abstract fun openCamera(context: Context)
 
-    data class FileData(val name: String, val duration: Long? = null, val date: Long)
+    data class FileData(
+        val name: String,
+        val duration: Long? = null,
+        val date: Long,
+        val type: String,
+        val unavailableByDuration: Boolean,
+        val unavailableBySize: Boolean,
+    )
 
     abstract fun getImagesPath(
         context: Context,
@@ -67,17 +74,16 @@ abstract class FilePicker {
                 if (mimeTypes.contains(mergeCursor.getString(columnIndexMT))) {
                     val duration = mergeCursor.getLongOrNull(columnIndexDuration)
                     val size = mergeCursor.getLongOrNull(columnIndexSize)
-                    if ((fileFilterSize >= (size ?: 0L)) && (pickerFilter.duration >= (duration
-                            ?: 0L))
-                    ) {
-                        listOfAllImages.add(
-                            FileData(
-                                mergeCursor.getString(columnIndexData),
-                                duration,
-                                mergeCursor.getLong(columnIndexDate),
-                            )
+                    listOfAllImages.add(
+                        FileData(
+                            name = mergeCursor.getString(columnIndexData),
+                            duration = duration,
+                            date = mergeCursor.getLong(columnIndexDate),
+                            unavailableByDuration = (pickerFilter.duration < (duration ?: 0L)),
+                            unavailableBySize = (fileFilterSize < (size ?: 0L)),
+                            type = it.type
                         )
-                    }
+                    )
                 }
             }
             mergeCursor.close()

@@ -84,10 +84,10 @@ class CameraButton @JvmOverloads constructor(
                 override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
                     val r = super.onSingleTapConfirmed(e)
                     synchronized(lock) {
+                        if (!onLongPressed) {
+                            actions.onClick()
+                        }
                         onLongPressed = false
-                    }
-                    if (contentType != C_TYPE_PHOTO) {
-                        actions.onClick()
                     }
                     return r
                 }

@@ -72,7 +72,7 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
         val contentType = arguments?.getInt("contentType", 0) ?: 0
         val cameraHint = arguments?.getString("cameraHint")
         cameraButton = view.findViewById(R.id.cameraButton)
-        cameraButton.isStatic = (contentType == 1)
+        cameraButton.contentType = contentType
         videoProgress = view.findViewById(R.id.videoProgress)
         changeCameraButton = view.findViewById(R.id.changeCam)
         cameraText = view.findViewById(R.id.cameraText)
@@ -222,6 +222,7 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
 
     var job: Job? = null
     private fun prepareAndStart(context: Context) {
+        if (videoIsStarted) return
         val fileOutput = FileOutputOptions.Builder(
             File(
                 context.filesDir,

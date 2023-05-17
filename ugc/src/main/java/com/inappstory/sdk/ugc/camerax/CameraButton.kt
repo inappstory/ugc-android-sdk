@@ -31,8 +31,14 @@ class CameraButton @JvmOverloads constructor(
         fun onLongPressUp()
     }
 
+    companion object {
+        const val C_TYPE_MIX = 0
+        const val C_TYPE_PHOTO = 1
+        const val C_TYPE_VIDEO = 2
+    }
+
     var started = false
-    var isStatic = false
+    var contentType = C_TYPE_MIX //0 - Mix, 1 - Photo, 2 - Video
 
     lateinit var actions: OnAction
     private var gradientDrawable: GradientDrawable
@@ -71,37 +77,64 @@ class CameraButton @JvmOverloads constructor(
         mGestureDetector = GestureDetector(context,
             object : SimpleOnGestureListener() {
                 override fun onDown(e: MotionEvent): Boolean {
-                    onLongPressed = false
+                    Log.e("SimpleOnGestureListener", "onDown")
                     return true
                 }
 
                 override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-
-                    actions.onClick()
-                    return super.onSingleTapConfirmed(e)
+                    val r = super.onSingleTapConfirmed(e)
+                    synchronized(lock) {
+                        onLongPressed = false
+                    }
+                    if (contentType != C_TYPE_PHOTO) {
+                        actions.onClick()
+                    }
+                    return r
                 }
 
                 override fun onLongPress(e: MotionEvent) {
-                    if (!isStatic) {
-                        onLongPressed = true
+
+                    if (contentType != C_TYPE_PHOTO) {
+                        synchronized(lock) {
+                            onLongPressed = true
+                        }
                         start()
                         actions.onLongPressDown()
                     }
+                    Log.e("SimpleOnGestureListener", "onLongPress $onLongPressed")
+                /*    synchronized(lock) {
+                        if (!isStatic) {
+                            Log.e("SimpleOnGestureListener", "onLongPress")
+                            onLongPressed = true
+                            start()
+                            actions.onLongPressDown()
+                        }
+                    }*/
                 }
             })
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (event.action != MotionEvent.ACTION_MOVE) {
+            Log.e("SimpleOnGestureListener", "$onLongPressed $event")
+        }
         if (event.action == MotionEvent.ACTION_UP ||
             event.action == MotionEvent.ACTION_CANCEL
         ) {
-            if (onLongPressed) {
-                actions.onLongPressUp()
-                stop()
+            synchronized(lock) {
+                if (onLongPressed) {
+                    postDelayed( {
+                        stop()
+                        actions.onLongPressUp()
+                    }, 300)
+                }
             }
+            onLongPressed = false
         }
         return mGestureDetector.onTouchEvent(event)
     }
+
+    private val lock = Any()
 
     private var onLongPressed = false
 

@@ -2,8 +2,14 @@ package com.inappstory.sdk.ugc.picker;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
+
 import androidx.exifinterface.media.ExifInterface;
+
+import android.graphics.Paint;
 import android.media.ThumbnailUtils;
 import android.os.Handler;
 import android.os.Looper;
@@ -60,19 +66,25 @@ public class FilePreviewsCache {
         }
     }
 
-    public void loadPreview(String path, ImageView imageView, boolean isVideo) {
-        if (isVideo) loadVideoThumbnail(path, imageView);
-        else loadBitmap(path, imageView, noCache);
+    public void loadPreview(String path, ImageView imageView, boolean unavailable, boolean isVideo) {
+        if (isVideo) loadVideoThumbnail(path, imageView, unavailable);
+        else loadBitmap(path, imageView, unavailable, noCache);
     }
 
 
-    private void loadVideoThumbnail(String path, ImageView imageView) {
+    private void loadVideoThumbnail(String path, ImageView imageView, boolean unavailable) {
         Bitmap bmp = getBitmap(path);
         if (bmp == null) {
 
             executorService.submit(() -> {
-                Bitmap loaded = ThumbnailUtils.createVideoThumbnail(path,
-                        MediaStore.Video.Thumbnails.MINI_KIND);
+                Bitmap loaded;
+                if (unavailable) {
+                    loaded = toGrayscale(ThumbnailUtils.createVideoThumbnail(path,
+                            MediaStore.Video.Thumbnails.MINI_KIND));
+                } else {
+                    loaded = ThumbnailUtils.createVideoThumbnail(path,
+                            MediaStore.Video.Thumbnails.MINI_KIND);
+                }
                 synchronized (memCacheLock) {
                     memoryCache.put(path, loaded);
                 }
@@ -84,7 +96,7 @@ public class FilePreviewsCache {
         }
     }
 
-    private void loadBitmap(String path, ImageView imageView, boolean noCache) {
+    private void loadBitmap(String path, ImageView imageView, boolean noCache, boolean unavailable) {
         Bitmap bmp = null;
         if (!noCache)
             bmp = getBitmap(path);
@@ -92,9 +104,12 @@ public class FilePreviewsCache {
             if (noCache) {
                 File file = new File(path);
                 executorService.submit(() -> {
-                    Bitmap loaded = decodeFile(file);
+                    Bitmap loaded = unavailable ?
+                            toGrayscale(decodeFile(file)) : decodeFile(file);
                     try {
-                        new Handler(Looper.getMainLooper()).post(() -> imageView.setImageBitmap(loaded));
+
+                        new Handler(Looper.getMainLooper()).post(() ->
+                                imageView.setImageBitmap(loaded));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -103,6 +118,23 @@ public class FilePreviewsCache {
                 addPriorityTask(path, imageView);
             }
         }
+    }
+
+    private Bitmap toGrayscale(Bitmap bmpOriginal) {
+        if (bmpOriginal == null) return null;
+        int width, height;
+        height = bmpOriginal.getHeight();
+        width = bmpOriginal.getWidth();
+
+        Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+        Canvas c = new Canvas(bmpGrayscale);
+        Paint paint = new Paint();
+        ColorMatrix cm = new ColorMatrix();
+        cm.setSaturation(0);
+        ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
+        paint.setColorFilter(f);
+        c.drawBitmap(bmpOriginal, 0, 0, paint);
+        return bmpGrayscale;
     }
 
     private int getExifInformation(String filePath) throws IOException {

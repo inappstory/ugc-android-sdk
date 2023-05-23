@@ -161,6 +161,6 @@ internal class FileChooseActivity : AppCompatActivity() {
     private val cache = FilePreviewsCache(true)
 
     fun loadPreview(path: String, imageView: ImageView, isVideo: Boolean) {
-        cache.loadPreview(path, imageView, isVideo)
+        cache.loadPreview(path, imageView, false, isVideo)
     }
 }

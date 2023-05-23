@@ -98,7 +98,12 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
                 val iv = holder.itemView.findViewById<ImageView>(R.id.image)
                 if (iv != null) {
                     holder.path = path
-                    cache.loadPreview(path, iv, duration != null)
+                    cache.loadPreview(
+                        path,
+                        iv,
+                        file.unavailableByDuration || file.unavailableBySize,
+                        duration != null
+                    )
                 }
                 val count = holder.itemView.findViewById<TextView>(R.id.count)
                 val videoDuration = holder.itemView.findViewById<TextView>(R.id.videoDuration)

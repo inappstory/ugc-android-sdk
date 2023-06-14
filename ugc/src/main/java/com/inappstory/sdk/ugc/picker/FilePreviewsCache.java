@@ -86,7 +86,8 @@ public class FilePreviewsCache {
                             MediaStore.Video.Thumbnails.MINI_KIND);
                 }
                 synchronized (memCacheLock) {
-                    memoryCache.put(path, loaded);
+                    if (!noCache)
+                        memoryCache.put(path, loaded);
                 }
                 try {
                     new Handler(Looper.getMainLooper()).post(() -> imageView.setImageBitmap(loaded));
@@ -247,7 +248,7 @@ public class FilePreviewsCache {
 
     private void addPriorityTask(String key, ImageView imageView) {
         synchronized (memCacheLock) {
-            if (memoryCache.get(key) != null) return;
+            if (!noCache && memoryCache.get(key) != null) return;
         }
         synchronized (queueLock) {
             for (QueuedTask task : tasks.values()) {
@@ -302,6 +303,7 @@ public class FilePreviewsCache {
     private final Object memCacheLock = new Object();
 
     private Bitmap getBitmap(String path) {
+        if (noCache) return null;
         synchronized (memCacheLock) {
             return memoryCache.get(path);
         }

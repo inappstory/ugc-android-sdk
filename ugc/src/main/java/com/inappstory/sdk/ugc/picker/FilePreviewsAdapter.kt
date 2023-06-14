@@ -17,7 +17,7 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
 
     var picker: FilePicker
     private val previews = arrayListOf<FilePicker.FileData>()
-    private val cache = FilePreviewsCache()
+    private val cache = FilePreviewsCache(false)
     var cameraCallback: OpenCameraClickCallback
     var clickCallback: FileClickCallback
     var noAccessCallback: NoAccessCallback

@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.inappstory.sdk.ugc.R
+import java.io.File
 
 class CameraFlowFragment : BackPressedFragment() {
 
@@ -44,7 +45,25 @@ class CameraFlowFragment : BackPressedFragment() {
         }, tag = "UGC_CAMERA_X", addToBackStack = false)
     }
 
+
+    private val cachedFiles = arrayListOf<String>()
+    private var latestFile: String? = null
+
+    override fun onDestroy() {
+        clearCachedFiles()
+        super.onDestroy()
+    }
+
+    private fun clearCachedFiles() {
+        cachedFiles.forEach {
+            val file = File(it)
+            if (file.exists()) file.delete()
+        }
+    }
+
     fun openPreviewScreen(isVideo: Boolean, filePath: String) {
+        latestFile = filePath
+        cachedFiles.add(filePath)
         (if (isVideo) {
             VideoPreviewFragment()
         } else {

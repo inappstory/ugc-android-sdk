@@ -226,7 +226,7 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
         val fileOutput = FileOutputOptions.Builder(
             File(
                 context.filesDir,
-                "ugc_video.mp4"
+                "ugc_video_${System.currentTimeMillis()}.mp4"
             )
         )
             .setFileSizeLimit(limitVideoInBytes)
@@ -306,12 +306,13 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
         }
     }
 
+
     private fun takePhoto(context: Context) {
         val outputFileOptionsBuilder =
             ImageCapture.OutputFileOptions.Builder(
                 File(
                     context.filesDir,
-                    "ugc_photo.jpg"
+                    "ugc_photo_${System.currentTimeMillis()}.jpg"
                 )
             ).apply {
                 if (currentCamera == 1) {

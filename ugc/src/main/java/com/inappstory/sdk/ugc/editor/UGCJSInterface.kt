@@ -1,5 +1,7 @@
 package com.inappstory.sdk.ugc.editor
 
+import android.os.Handler
+import android.os.Looper
 import android.webkit.JavascriptInterface
 
 internal class UGCJSInterface(val editor: UGCEditor) {
@@ -27,6 +29,9 @@ internal class UGCJSInterface(val editor: UGCEditor) {
 
     @JavascriptInterface
     fun openFilePicker(data: String) {
-        editor.openFilePicker(data)
+        Handler(Looper.getMainLooper()).postDelayed({
+            editor.openFilePicker(data)
+        }, 5000)
+
     }
 }

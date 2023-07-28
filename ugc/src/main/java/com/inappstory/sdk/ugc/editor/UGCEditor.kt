@@ -12,19 +12,12 @@ import android.os.Handler
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
-import android.webkit.ConsoleMessage
-import android.webkit.MimeTypeMap
-import android.webkit.WebChromeClient
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.inappstory.sdk.AppearanceManager
-import com.inappstory.sdk.game.reader.GameLoadProgressBar
 import com.inappstory.sdk.network.JsonParser
 import com.inappstory.sdk.network.jsapiclient.JsApiClient
 import com.inappstory.sdk.stories.api.models.WebResource
@@ -156,14 +149,11 @@ internal class UGCEditor : AppCompatActivity() {
         baseContainer = findViewById(R.id.draggable_frame)
         loaderContainer = findViewById(R.id.loaderContainer)
         loaderView = if (AppearanceManager.getCommonInstance().csGameLoaderView() == null) {
-            GameLoadProgressBar(
-                this@UGCEditor,
-                null,
-                android.R.attr.progressBarStyleHorizontal
-            )
+            UGCLoadProgressBar(this@UGCEditor)
         } else {
             AppearanceManager.getCommonInstance().csGameLoaderView()
         }
+        loaderView.setIndeterminate(false)
         if (Sizes.isTablet()) {
             baseContainer.setOnClickListener { close() }
         }
@@ -337,7 +327,11 @@ internal class UGCEditor : AppCompatActivity() {
                                 MimeTypeMap.getFileExtensionFromUrl(filePath)
                             )
 
-                            WebResourceResponse(mimeType, "utf-8", FileInputStream(file))
+                            WebResourceResponse(mimeType, "utf-8", FileInputStream(file)).apply {
+                                val headers = HashMap(responseHeaders ?: emptyMap())
+                                headers["Access-Control-Allow-Origin"] = "*"
+                                responseHeaders = headers
+                            }
 
                         } else {
                             Log.d("InAppStory_UGC", "File ${filePath} not exists")
@@ -353,8 +347,8 @@ internal class UGCEditor : AppCompatActivity() {
                 }
             }
         }
-
     }
+
 
     private fun initEditor(data: String?) {
         if (data == null) return

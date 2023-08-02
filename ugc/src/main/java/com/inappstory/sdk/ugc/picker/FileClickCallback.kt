@@ -1,7 +1,7 @@
 package com.inappstory.sdk.ugc.picker
 
 interface FileClickCallback {
-    fun select(filePath: String)
+    fun select(file: SelectedFile)
 
-    fun unselect(filePath: String)
+    fun unselect(file: SelectedFile)
 }

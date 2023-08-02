@@ -23,7 +23,9 @@ import com.inappstory.sdk.network.jsapiclient.JsApiClient
 import com.inappstory.sdk.stories.api.models.WebResource
 import com.inappstory.sdk.stories.ui.views.IASWebView
 import com.inappstory.sdk.stories.ui.views.IGameLoaderView
+import com.inappstory.sdk.stories.ui.views.IGameReaderLoaderView
 import com.inappstory.sdk.stories.utils.Sizes
+import com.inappstory.sdk.ugc.IUGCReaderLoaderView
 import com.inappstory.sdk.ugc.R
 import com.inappstory.sdk.ugc.UGCInAppStoryManager
 import com.inappstory.sdk.ugc.picker.FileChooseActivity
@@ -43,7 +45,7 @@ internal class UGCEditor : AppCompatActivity() {
     private lateinit var closeButton: View
     private lateinit var webViewContainer: View
     private lateinit var loaderContainer: RelativeLayout
-    private lateinit var loaderView: IGameLoaderView
+    private lateinit var loaderView: IUGCReaderLoaderView
     private lateinit var baseContainer: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -148,11 +150,7 @@ internal class UGCEditor : AppCompatActivity() {
         loader = findViewById(R.id.loader)
         baseContainer = findViewById(R.id.draggable_frame)
         loaderContainer = findViewById(R.id.loaderContainer)
-        loaderView = if (AppearanceManager.getCommonInstance().csGameLoaderView() == null) {
-            UGCLoadProgressBar(this@UGCEditor)
-        } else {
-            AppearanceManager.getCommonInstance().csGameLoaderView()
-        }
+        loaderView = UGCInAppStoryManager.loaderView ?: UGCLoadProgressBar(this@UGCEditor)
         loaderView.setIndeterminate(false)
         if (Sizes.isTablet()) {
             baseContainer.setOnClickListener { close() }
@@ -175,7 +173,7 @@ internal class UGCEditor : AppCompatActivity() {
                 }
             }
         }
-        loaderContainer.addView(loaderView.view)
+        loaderContainer.addView(loaderView.getView(this))
     }
 
     private fun saveEditorState() {
@@ -189,7 +187,6 @@ internal class UGCEditor : AppCompatActivity() {
     }
 
     private fun pauseEditor() {
-
         if (this::webView.isInitialized) {
             webView.evaluateJavascript("window.editorApi.pauseUI();", null)
             webView.alpha = 0f
@@ -428,8 +425,16 @@ internal class UGCEditor : AppCompatActivity() {
             webView.evaluateJavascript(
                 "window.editorApi.close();", null
             )
+            clearConvertedVideos()
         } else {
             finish()
+        }
+    }
+
+    private fun clearConvertedVideos() {
+        val dir = File("$filesDir/converted")
+        if (dir.exists() && dir.isDirectory) {
+            dir.listFiles()?.forEach { it.deleteRecursively() }
         }
     }
 

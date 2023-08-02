@@ -16,6 +16,9 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.inappstory.sdk.ugc.R
 import com.inappstory.sdk.ugc.camerax.BackPressedFragment
+import com.inappstory.sdk.ugc.utils.faststart.FastStart
+import java.io.File
+import java.util.UUID
 
 
 internal class FilePickerFragment : BackPressedFragment() {
@@ -35,7 +38,8 @@ internal class FilePickerFragment : BackPressedFragment() {
     private lateinit var previews: FilePreviewsList
 
     var acceptTypes = arrayListOf<String>()
-    val selectedFiles = arrayListOf<String>()
+    val selectedFiles = arrayListOf<SelectedFile>()
+
 
     private val STORAGE_PERMISSIONS_RESULT = 888
     private val CAMERA_PERMISSIONS_RESULT = 890
@@ -126,9 +130,32 @@ internal class FilePickerFragment : BackPressedFragment() {
         }
         uploadButton.setOnClickListener {
             if (activity is FileChooseActivity && selectedFiles.isNotEmpty()) {
-                (activity as FileChooseActivity).sendResultMultiple(selectedFiles.toTypedArray())
+                (activity as FileChooseActivity).sendResultMultiple(convertFiles().toTypedArray())
             }
         }
+    }
+
+    private fun convertFiles(): ArrayList<String> {
+        val resultFiles = arrayListOf<String>()
+        selectedFiles.forEach {
+            if (it.fileType == "video") {
+                val currentFile = File(it.filePath)
+                currentFile.extension
+                val file = File(
+                    "${requireContext().filesDir}/converted",
+                    "${UUID.randomUUID()}_${it.filePath}"
+                )
+                val fs = FastStart(currentFile.absolutePath, file.absolutePath).fastStart()
+                if (fs) {
+                    resultFiles.add(file.absolutePath)
+                } else {
+                    resultFiles.add(currentFile.absolutePath)
+                }
+            } else {
+                resultFiles.add(it.filePath)
+            }
+        }
+        return resultFiles
     }
 
     override fun onStart() {
@@ -209,7 +236,8 @@ internal class FilePickerFragment : BackPressedFragment() {
             arguments?.getLong("filePickerVideoMaxLengthInSeconds") ?: 10
         val fileLimitPhotoSize = messages["title_image_max_size_limit"] ?: "File is too large"
         val fileLimitVideoSize = messages["title_video_max_size_limit"] ?: "File is too large"
-        val fileLimitVideoDuration = messages["title_video_max_duration_limit"] ?: "File is too large"
+        val fileLimitVideoDuration =
+            messages["title_video_max_duration_limit"] ?: "File is too large"
 
         val translations = mapOf(
             "galleryFileLimitText" to galleryFileLimitText,
@@ -223,14 +251,14 @@ internal class FilePickerFragment : BackPressedFragment() {
             allowMultipleSelection = allowMultiple,
             mimeTypes = acceptTypes,
             clickCallback = object : FileClickCallback {
-                override fun select(filePath: String) {
-                    selectedFiles.add(filePath)
+                override fun select(file: SelectedFile) {
+                    selectedFiles.add(file)
                     //selectedFile = filePath
                     uploadButton.show()
                 }
 
-                override fun unselect(filePath: String) {
-                    selectedFiles.remove(filePath)
+                override fun unselect(file: SelectedFile) {
+                    selectedFiles.remove(file)
                     if (selectedFiles.isEmpty())
                         uploadButton.hide()
                 }

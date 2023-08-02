@@ -139,7 +139,7 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
                             }) ?: ""
                         )
                     } else if (activePositions.contains(intPos)) {
-                        clickCallback.unselect(path)
+                        clickCallback.unselect(SelectedFile(path, file.type))
                         activePositions.remove(intPos)
                     } else {
                         if (activePositions.size >= galleryFileMaxCount) {
@@ -150,13 +150,18 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
                             return@setOnClickListener
                         }
                         activePositions.add(intPos)
-                        clickCallback.select(path)
+                        clickCallback.select(SelectedFile(path, file.type))
                         if (!allowMultipleSelection) {
                             val i: MutableIterator<Int> = activePositions.iterator()
                             while (i.hasNext()) {
                                 val activePosition = i.next()
                                 if (activePosition != intPos.toInt()) {
-                                    clickCallback.unselect(previews[activePosition].name)
+                                    clickCallback.unselect(
+                                        SelectedFile(
+                                            previews[activePosition].name,
+                                            previews[activePosition].type
+                                        )
+                                    )
                                     i.remove()
                                 }
                             }

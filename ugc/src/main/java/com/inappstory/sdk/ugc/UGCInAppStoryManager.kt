@@ -10,6 +10,7 @@ import com.inappstory.sdk.network.JsonParser
 import com.inappstory.sdk.stories.api.models.Session
 import com.inappstory.sdk.stories.api.models.callbacks.OpenSessionCallback
 import com.inappstory.sdk.stories.ui.ScreensManager
+import com.inappstory.sdk.stories.ui.views.IGameReaderLoaderView
 import com.inappstory.sdk.stories.utils.SessionManager
 import com.inappstory.sdk.ugc.editor.EditorConfig
 import com.inappstory.sdk.ugc.editor.EmptyUGCEditorCallback
@@ -24,6 +25,12 @@ object UGCInAppStoryManager {
     lateinit var appContext: Context
 
     private var latestCloseCallback: (() -> Unit) = {}
+
+    internal var loaderView: IUGCReaderLoaderView? = null
+
+    fun csUgcReaderLoaderView(loaderView: IUGCReaderLoaderView) {
+        this.loaderView = loaderView
+    }
 
     fun closeEditor(closeCallback: (() -> Unit) = {}) {
         latestCloseCallback = closeCallback

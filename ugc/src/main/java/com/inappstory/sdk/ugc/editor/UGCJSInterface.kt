@@ -29,9 +29,6 @@ internal class UGCJSInterface(val editor: UGCEditor) {
 
     @JavascriptInterface
     fun openFilePicker(data: String) {
-        Handler(Looper.getMainLooper()).postDelayed({
-            editor.openFilePicker(data)
-        }, 5000)
-
+        editor.openFilePicker(data)
     }
 }

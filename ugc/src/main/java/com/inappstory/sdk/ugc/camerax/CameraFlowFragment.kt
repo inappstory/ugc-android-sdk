@@ -72,7 +72,7 @@ class CameraFlowFragment : BackPressedFragment() {
             arguments = Bundle().apply {
                 putString("filePath", filePath)
             }
-            openFragment(this, "UGC_PREVIEW")
+            openFragment(this, "UGC_PREVIEW", true)
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.inappstory.sdk.ugc.editor
 
 import android.app.Activity
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -17,13 +18,13 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
-import com.inappstory.sdk.AppearanceManager
+import androidx.core.content.FileProvider
+import androidx.lifecycle.lifecycleScope
 import com.inappstory.sdk.network.JsonParser
 import com.inappstory.sdk.network.jsapiclient.JsApiClient
+import com.inappstory.sdk.share.IASShareManager
 import com.inappstory.sdk.stories.api.models.WebResource
 import com.inappstory.sdk.stories.ui.views.IASWebView
-import com.inappstory.sdk.stories.ui.views.IGameLoaderView
-import com.inappstory.sdk.stories.ui.views.IGameReaderLoaderView
 import com.inappstory.sdk.stories.utils.Sizes
 import com.inappstory.sdk.ugc.IUGCReaderLoaderView
 import com.inappstory.sdk.ugc.R
@@ -31,9 +32,7 @@ import com.inappstory.sdk.ugc.UGCInAppStoryManager
 import com.inappstory.sdk.ugc.picker.FileChooseActivity
 import com.inappstory.sdk.utils.ZipLoadCallback
 import com.inappstory.sdk.utils.ZipLoader
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileInputStream
 import kotlin.math.max
@@ -395,7 +394,11 @@ internal class UGCEditor : AppCompatActivity() {
                 var arr = arrayOf<String>()
                 if (resultCode == Activity.RESULT_OK) {
                     val files = data?.getStringArrayExtra("files")
-
+                   /* files?.let {
+                        if (it.isNotEmpty())
+                            if (it[0].endsWith("mp4"))
+                                testSend(File(it[0]))
+                    }*/
                     arr = files?.map {
                         Uri.fromFile(File(it)).toString()
                             .replace("file://", "http://file-assets")
@@ -408,6 +411,24 @@ internal class UGCEditor : AppCompatActivity() {
                 webView.evaluateJavascript(initST, null)
                 openFilePickerCbId = null
             }
+        }
+    }
+
+    private fun testSend(file: File) {
+        lifecycleScope.launch {
+            delay(15000)
+            val sendingIntent = Intent()
+            sendingIntent.action = Intent.ACTION_SEND
+            sendingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            sendingIntent.type = "video/*"
+            sendingIntent.putExtra(
+                Intent.EXTRA_STREAM, FileProvider.getUriForFile(
+                    this@UGCEditor,
+                    "com.inappstory.sdk.ugc.provider", //(use your app signature + ".provider" )
+                    file
+                )
+            )
+            startActivity(Intent.createChooser(sendingIntent, null))
         }
     }
 

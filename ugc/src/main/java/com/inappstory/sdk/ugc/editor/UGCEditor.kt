@@ -146,6 +146,8 @@ internal class UGCEditor : AppCompatActivity() {
 
     private fun setViews() {
         webView = findViewById(R.id.ugcWebview)
+        webView.settings.allowFileAccessFromFileURLs = true
+        webView.settings.allowUniversalAccessFromFileURLs = true
         loader = findViewById(R.id.loader)
         baseContainer = findViewById(R.id.draggable_frame)
         loaderContainer = findViewById(R.id.loaderContainer)
@@ -323,11 +325,11 @@ internal class UGCEditor : AppCompatActivity() {
                                 MimeTypeMap.getFileExtensionFromUrl(filePath)
                             )
 
-                            WebResourceResponse(mimeType, "utf-8", FileInputStream(file)).apply {
+                            WebResourceResponse(mimeType, "utf-8", FileInputStream(file))/*.apply {
                                 val headers = HashMap(responseHeaders ?: emptyMap())
                                 headers["Access-Control-Allow-Origin"] = "*"
                                 responseHeaders = headers
-                            }
+                            }*/
 
                         } else {
                             Log.d("InAppStory_UGC", "File ${filePath} not exists")
@@ -370,12 +372,12 @@ internal class UGCEditor : AppCompatActivity() {
             )
         }
 
-        override fun onError() {
+        override fun onError(error: String) {
             TODO("Not yet implemented")
         }
 
-        override fun onProgress(loadedSize: Int, totalSize: Int) {
-            loaderView.setProgress((loadedSize * 100 / totalSize), 100)
+        override fun onProgress(loadedSize: Long, totalSize: Long) {
+            loaderView.setProgress((loadedSize * 100 / totalSize).toInt(), 100)
         }
     }
 

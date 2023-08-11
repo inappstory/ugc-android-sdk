@@ -3,14 +3,12 @@ package com.inappstory.sdk.ugc
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
-import android.util.Log
 import androidx.core.util.Pair
 import com.inappstory.sdk.InAppStoryManager
 import com.inappstory.sdk.network.JsonParser
 import com.inappstory.sdk.stories.api.models.Session
 import com.inappstory.sdk.stories.api.models.callbacks.OpenSessionCallback
 import com.inappstory.sdk.stories.ui.ScreensManager
-import com.inappstory.sdk.stories.ui.views.IGameReaderLoaderView
 import com.inappstory.sdk.stories.utils.SessionManager
 import com.inappstory.sdk.ugc.editor.EditorConfig
 import com.inappstory.sdk.ugc.editor.EmptyUGCEditorCallback

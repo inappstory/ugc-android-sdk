@@ -24,7 +24,12 @@ class UGCLoadProgressBar(context: Context?, attrs: AttributeSet?, defStyleAttr: 
         initSize()
     }
 
-    private var STROKE_WIDTH = Sizes.dpToPxExt(6).toFloat()
+
+    private val strokeWidthDP = 4
+
+    private val sizeDP = 36
+
+    private var STROKE_WIDTH = Sizes.dpToPxExt(strokeWidthDP).toFloat()
     private var STROKE_SIZE_HALF = STROKE_WIDTH / 2
 
     private fun getColorPaint(resources: Resources): Paint? {
@@ -34,7 +39,6 @@ class UGCLoadProgressBar(context: Context?, attrs: AttributeSet?, defStyleAttr: 
                 resources.getColor(R.color.cs_loaderColor)
             COLOR_PAINT!!.style = Paint.Style.STROKE
             COLOR_PAINT!!.strokeWidth = STROKE_WIDTH
-            COLOR_PAINT!!.strokeCap = Paint.Cap.ROUND
             COLOR_PAINT!!.isAntiAlias = true
         }
         return COLOR_PAINT
@@ -45,11 +49,11 @@ class UGCLoadProgressBar(context: Context?, attrs: AttributeSet?, defStyleAttr: 
     }
 
     private fun initSize() {
-        STROKE_WIDTH = Sizes.dpToPxExt(6, context).toFloat()
+        STROKE_WIDTH = Sizes.dpToPxExt(strokeWidthDP, context).toFloat()
         STROKE_SIZE_HALF = STROKE_WIDTH / 2
         val lp = RelativeLayout.LayoutParams(
-            Sizes.dpToPxExt(40, context),
-            Sizes.dpToPxExt(40, context)
+            Sizes.dpToPxExt(sizeDP, context),
+            Sizes.dpToPxExt(sizeDP, context)
         )
         lp.addRule(RelativeLayout.CENTER_IN_PARENT)
         layoutParams = lp
@@ -94,9 +98,7 @@ class UGCLoadProgressBar(context: Context?, attrs: AttributeSet?, defStyleAttr: 
         currentFrame++
         currentFrame %= 450
         val currentState = currentFrame % 90
-        val angle = 360f * (currentFrame / 450f)
-        var value = 0f
-        value = if (currentState < 12 || currentState > 78) {
+        val value = if (currentState < 12 || currentState > 78) {
             0f
         } else if (currentState in 34..56) {
             1f

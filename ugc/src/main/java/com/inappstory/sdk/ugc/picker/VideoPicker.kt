@@ -13,14 +13,16 @@ internal class VideoPicker : FilePicker() {
             getImagesPath(
                 context,
                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                mimeTypes
+                mimeTypes,
+                isVideo = true
             )
         )
         path.addAll(
             getImagesPath(
                 context,
                 MediaStore.Video.Media.INTERNAL_CONTENT_URI,
-                mimeTypes
+                mimeTypes,
+                isVideo = true
             )
         )
         return path

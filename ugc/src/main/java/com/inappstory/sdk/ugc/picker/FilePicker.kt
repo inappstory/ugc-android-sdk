@@ -37,11 +37,19 @@ abstract class FilePicker {
     protected fun getImagesPath(
         context: Context,
         uri: Uri?,
-        mimeTypes: List<String>?
+        mimeTypes: List<String>?,
+        isVideo: Boolean = false
     ): ArrayList<String> {
         val listOfAllImages = ArrayList<String>()
         val cursor: Cursor?
-        val projection = arrayOf(
+        val imageProjection = arrayOf(
+            MediaStore.MediaColumns.TITLE,
+            MediaStore.MediaColumns.DATA,
+            MediaStore.MediaColumns.MIME_TYPE,
+            MediaStore.MediaColumns.SIZE,
+            MediaStore.MediaColumns.DATE_MODIFIED
+        )
+        val videoProjection = arrayOf(
             MediaStore.MediaColumns.TITLE,
             MediaStore.MediaColumns.DATA,
             MediaStore.MediaColumns.MIME_TYPE,
@@ -56,14 +64,15 @@ abstract class FilePicker {
         val filter = getFilter()
         cursor = context.contentResolver.query(
             uri!!,
-            projection,
+            if (isVideo) videoProjection else imageProjection,
             filter?.selection,
             filter?.selectionArgs,
             "${MediaStore.MediaColumns.DATE_MODIFIED} DESC"
         )
-        val columnIndexData: Int = cursor!!.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
-        val columnIndexMT: Int = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE)
+        val columnIndexData: Int = cursor!!.getColumnIndex(MediaStore.MediaColumns.DATA)
+        val columnIndexMT: Int = cursor.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE)
         while (cursor.moveToNext()) {
+            if (columnIndexData == -1 || columnIndexMT == -1) continue
             if (mimeTypes != null && mimeTypes.contains(cursor.getString(columnIndexMT))) {
                 listOfAllImages.add(cursor.getString(columnIndexData))
             }

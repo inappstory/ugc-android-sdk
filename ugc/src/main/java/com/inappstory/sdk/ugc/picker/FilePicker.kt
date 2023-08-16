@@ -41,7 +41,14 @@ abstract class FilePicker {
             } else {
                 MediaStore.Video.VideoColumns.DURATION
             }
-        val projection = arrayOf(
+        val imageProjection = arrayOf(
+            MediaStore.MediaColumns.TITLE,
+            MediaStore.MediaColumns.DATA,
+            MediaStore.MediaColumns.MIME_TYPE,
+            MediaStore.MediaColumns.SIZE,
+            MediaStore.MediaColumns.DATE_MODIFIED
+        )
+        val videoProjection = arrayOf(
             MediaStore.MediaColumns.TITLE,
             MediaStore.MediaColumns.DATA,
             MediaStore.MediaColumns.MIME_TYPE,
@@ -52,7 +59,7 @@ abstract class FilePicker {
         uri.forEach {
             val mergeCursor = context.contentResolver.query(
                 it.uri,
-                projection,
+                if (it.type == "video") videoProjection else imageProjection,
                 null,
                 null,
                 null
@@ -61,16 +68,17 @@ abstract class FilePicker {
             val fileFilterSize =
                 if (it.type == "video") pickerFilter.videoSize else pickerFilter.imageSize
             val columnIndexDate: Int =
-                mergeCursor!!.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED)
+                mergeCursor!!.getColumnIndex(MediaStore.MediaColumns.DATE_MODIFIED)
             val columnIndexSize: Int =
-                mergeCursor.getColumnIndexOrThrow(MediaStore.MediaColumns.SIZE)
+                mergeCursor.getColumnIndex(MediaStore.MediaColumns.SIZE)
 
             val columnIndexData: Int =
-                mergeCursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
-            val columnIndexDuration: Int = mergeCursor.getColumnIndexOrThrow(durationColumn)
+                mergeCursor.getColumnIndex(MediaStore.MediaColumns.DATA)
+            val columnIndexDuration: Int = mergeCursor.getColumnIndex(durationColumn)
             val columnIndexMT: Int =
-                mergeCursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE)
+                mergeCursor.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE)
             while (mergeCursor.moveToNext()) {
+                if (columnIndexMT == -1 || columnIndexData == -1 || columnIndexDate == -1) continue
                 if (mimeTypes.contains(mergeCursor.getString(columnIndexMT))) {
                     val duration = mergeCursor.getLongOrNull(columnIndexDuration)
                     val size = mergeCursor.getLongOrNull(columnIndexSize)

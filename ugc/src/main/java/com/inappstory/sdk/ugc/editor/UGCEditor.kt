@@ -3,7 +3,6 @@ package com.inappstory.sdk.ugc.editor
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -20,10 +19,12 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.inappstory.sdk.AppearanceManager
+import com.inappstory.sdk.InAppStoryManager
 import com.inappstory.sdk.game.reader.GameLoadProgressBar
 import com.inappstory.sdk.network.JsonParser
 import com.inappstory.sdk.network.jsapiclient.JsApiClient
 import com.inappstory.sdk.stories.api.models.WebResource
+import com.inappstory.sdk.stories.api.models.logs.WebConsoleLog
 import com.inappstory.sdk.stories.ui.views.IASWebView
 import com.inappstory.sdk.stories.ui.views.IGameLoaderView
 import com.inappstory.sdk.stories.utils.Sizes
@@ -35,6 +36,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
+import java.util.*
 import kotlin.math.max
 
 internal class UGCEditor : AppCompatActivity() {
@@ -212,6 +214,21 @@ internal class UGCEditor : AppCompatActivity() {
     private val videoType = "video"
     private val imageType = "image"
 
+    private fun sendWebConsoleLog(
+        consoleMessage: ConsoleMessage,
+    ) {
+        val log = WebConsoleLog()
+        log.timestamp = System.currentTimeMillis()
+        log.id = UUID.randomUUID().toString()
+        log.logType = consoleMessage.messageLevel().name
+        log.message = consoleMessage.message()
+        log.sourceId = consoleMessage.sourceId()
+        log.lineNumber = consoleMessage.lineNumber()
+        log.storyId = "UGC_Editor"
+        log.slideIndex = -1
+        InAppStoryManager.sendWebConsoleLog(log)
+    }
+
     private fun initWebView() {
         webView.settings.minimumFontSize = 1
         webView.addJavascriptInterface(
@@ -250,6 +267,9 @@ internal class UGCEditor : AppCompatActivity() {
             }
 
             override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
+                sendWebConsoleLog(
+                    consoleMessage
+                )
                 Log.d(
                     "InAppStory_UGC", consoleMessage.messageLevel().name + ": "
                             + consoleMessage.message() + " -- From line "

@@ -20,10 +20,12 @@ import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import com.inappstory.sdk.InAppStoryManager
 import com.inappstory.sdk.network.JsonParser
 import com.inappstory.sdk.network.jsapiclient.JsApiClient
 import com.inappstory.sdk.share.IASShareManager
 import com.inappstory.sdk.stories.api.models.WebResource
+import com.inappstory.sdk.stories.api.models.logs.WebConsoleLog
 import com.inappstory.sdk.stories.ui.views.IASWebView
 import com.inappstory.sdk.stories.utils.Sizes
 import com.inappstory.sdk.ugc.IUGCReaderLoaderView
@@ -35,6 +37,9 @@ import com.inappstory.sdk.utils.ZipLoader
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileInputStream
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.math.max
 
 
@@ -270,6 +275,21 @@ internal class UGCEditor : AppCompatActivity() {
     private val videoType = "video"
     private val imageType = "image"
 
+    private fun sendWebConsoleLog(
+        consoleMessage: ConsoleMessage,
+    ) {
+        val log = WebConsoleLog()
+        log.timestamp = System.currentTimeMillis()
+        log.id = UUID.randomUUID().toString()
+        log.logType = consoleMessage.messageLevel().name
+        log.message = consoleMessage.message()
+        log.sourceId = consoleMessage.sourceId()
+        log.lineNumber = consoleMessage.lineNumber()
+        log.storyId = "UGC_Editor"
+        log.slideIndex = -1
+        InAppStoryManager.sendWebConsoleLog(log)
+    }
+
     private fun initWebView() {
         webView.settings.minimumFontSize = 1
         webView.addJavascriptInterface(
@@ -282,6 +302,9 @@ internal class UGCEditor : AppCompatActivity() {
             var init = false
 
             override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
+                sendWebConsoleLog(
+                    consoleMessage
+                )
                 Log.d(
                     "InAppStory_UGC", consoleMessage.messageLevel().name + ": "
                             + consoleMessage.message() + " -- From line "

@@ -10,6 +10,7 @@ import com.inappstory.sdk.stories.api.models.Session
 import com.inappstory.sdk.stories.api.models.callbacks.OpenSessionCallback
 import com.inappstory.sdk.stories.ui.ScreensManager
 import com.inappstory.sdk.stories.utils.SessionManager
+import com.inappstory.sdk.ugc.cache.EditorCacheManager
 import com.inappstory.sdk.ugc.editor.EditorConfig
 import com.inappstory.sdk.ugc.editor.EmptyUGCEditorCallback
 import com.inappstory.sdk.ugc.editor.UGCEditor
@@ -21,6 +22,8 @@ object UGCInAppStoryManager {
 
     var editorCallback: UGCEditorCallback = EmptyUGCEditorCallback()
     lateinit var appContext: Context
+
+    var editorCacheManager: EditorCacheManager = EditorCacheManager()
 
     private var latestCloseCallback: (() -> Unit) = {}
 

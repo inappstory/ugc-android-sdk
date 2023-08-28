@@ -26,11 +26,15 @@ import com.inappstory.sdk.network.jsapiclient.JsApiClient
 import com.inappstory.sdk.share.IASShareManager
 import com.inappstory.sdk.stories.api.models.WebResource
 import com.inappstory.sdk.stories.api.models.logs.WebConsoleLog
+import com.inappstory.sdk.stories.cache.DownloadInterruption
 import com.inappstory.sdk.stories.ui.views.IASWebView
 import com.inappstory.sdk.stories.utils.Sizes
 import com.inappstory.sdk.ugc.IUGCReaderLoaderView
 import com.inappstory.sdk.ugc.R
 import com.inappstory.sdk.ugc.UGCInAppStoryManager
+import com.inappstory.sdk.ugc.cache.FilePathAndContent
+import com.inappstory.sdk.ugc.cache.ProgressCallback
+import com.inappstory.sdk.ugc.cache.UseCaseCallback
 import com.inappstory.sdk.ugc.picker.FileChooseActivity
 import com.inappstory.sdk.utils.ZipLoadCallback
 import com.inappstory.sdk.utils.ZipLoader
@@ -54,6 +58,7 @@ internal class UGCEditor : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        interruption = DownloadInterruption()
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         setContentView(R.layout.cs_activity_ugc)
         UGCInAppStoryManager.editorCallback.editorEvent("editorWillShow");
@@ -62,6 +67,7 @@ internal class UGCEditor : AppCompatActivity() {
         config = intent.getStringExtra("editorConfig")
         loadEditor(intent.getStringExtra("url"))
     }
+
 
     override fun onStart() {
         super.onStart()
@@ -381,34 +387,67 @@ internal class UGCEditor : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        interruption.active = true
         UGCInAppStoryManager.editorCallback.editorEvent("editorDidClose");
         super.onDestroy()
         UGCInAppStoryManager.invokeCloseCallback()
     }
 
-    var callback: ZipLoadCallback = object : ZipLoadCallback {
-        override fun onLoad(baseUrl: String?, data: String?) {
-            webView.loadDataWithBaseURL(
-                baseUrl, data!!,
-                "text/html; charset=utf-8", "UTF-8",
-                null
+    /* var callback: ZipLoadCallback = object : ZipLoadCallback {
+         override fun onLoad(baseUrl: String?, data: String?) {
+             webView.loadDataWithBaseURL(
+                 baseUrl, data!!,
+                 "text/html; charset=utf-8", "UTF-8",
+                 null
+             )
+         }
+
+         override fun onError(error: String) {
+             TODO("Not yet implemented")
+         }
+
+         override fun onProgress(loadedSize: Long, totalSize: Long) {
+             loaderView.setProgress((loadedSize * 100 / totalSize).toInt(), 100)
+         }
+     }*/
+
+
+    private fun loadEditor(path: String?) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            UGCInAppStoryManager.editorCacheManager.getEditor(
+                resultCallback = object : UseCaseCallback<FilePathAndContent> {
+                    override fun onError(message: String?) {
+                        Log.e("UGC_EDITOR_ERROR", message ?: "")
+                    }
+
+                    override fun onSuccess(result: FilePathAndContent) {
+                        lifecycleScope.launch(Dispatchers.Main) {
+                            webView.loadDataWithBaseURL(
+                                result.filePath, result.fileContent,
+                                "text/html; charset=utf-8", "UTF-8",
+                                null
+                            )
+                        }
+
+
+                    }
+                }, progressCallback = { loadedSize, totalSize ->
+                    lifecycleScope.launch(Dispatchers.Main) {
+                        loaderView.setProgress((loadedSize * 100 / totalSize).toInt(), 100)
+                    }
+
+                },
+                interruption = interruption,
+                editorUrl = path ?: ""
             )
         }
 
-        override fun onError(error: String) {
-            TODO("Not yet implemented")
-        }
-
-        override fun onProgress(loadedSize: Long, totalSize: Long) {
-            loaderView.setProgress((loadedSize * 100 / totalSize).toInt(), 100)
-        }
-    }
-
-    fun loadEditor(path: String?) {
-        val resourceList = ArrayList<WebResource>()
+        /*val resourceList = ArrayList<WebResource>()
         val urlParts: Array<String> = ZipLoader.urlParts(path)
-        ZipLoader.getInstance().downloadAndUnzip(resourceList, path, urlParts[0], callback, "ugc")
+        ZipLoader.getInstance().downloadAndUnzip(resourceList, path, urlParts[0], callback, "ugc")*/
     }
+
+    lateinit var interruption: DownloadInterruption
 
     internal val CHOOSE_FILE_REQUEST_CODE = 827;
 
@@ -419,11 +458,11 @@ internal class UGCEditor : AppCompatActivity() {
                 var arr = arrayOf<String>()
                 if (resultCode == Activity.RESULT_OK) {
                     val files = data?.getStringArrayExtra("files")
-                   /* files?.let {
-                        if (it.isNotEmpty())
-                            if (it[0].endsWith("mp4"))
-                                testSend(File(it[0]))
-                    }*/
+                    /* files?.let {
+                         if (it.isNotEmpty())
+                             if (it[0].endsWith("mp4"))
+                                 testSend(File(it[0]))
+                     }*/
                     arr = files?.map {
                         Uri.fromFile(File(it)).toString()
                             .replace("file://", "http://file-assets")

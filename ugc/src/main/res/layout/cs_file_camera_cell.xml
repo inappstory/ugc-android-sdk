@@ -9,6 +9,6 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:id="@+id/image"
-        android:src="@drawable/ic_camera"
+        android:src="@drawable/cs_camera"
         android:scaleType="fitCenter"/>
 </RelativeLayout>

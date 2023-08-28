@@ -1,7 +1,10 @@
 package com.inappstory.sdk.ugc.editor
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -20,11 +23,10 @@ import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import com.inappstory.sdk.AppearanceManager
 import com.inappstory.sdk.InAppStoryManager
 import com.inappstory.sdk.network.JsonParser
 import com.inappstory.sdk.network.jsapiclient.JsApiClient
-import com.inappstory.sdk.share.IASShareManager
-import com.inappstory.sdk.stories.api.models.WebResource
 import com.inappstory.sdk.stories.api.models.logs.WebConsoleLog
 import com.inappstory.sdk.stories.cache.DownloadInterruption
 import com.inappstory.sdk.stories.ui.views.IASWebView
@@ -33,27 +35,23 @@ import com.inappstory.sdk.ugc.IUGCReaderLoaderView
 import com.inappstory.sdk.ugc.R
 import com.inappstory.sdk.ugc.UGCInAppStoryManager
 import com.inappstory.sdk.ugc.cache.FilePathAndContent
-import com.inappstory.sdk.ugc.cache.ProgressCallback
 import com.inappstory.sdk.ugc.cache.UseCaseCallback
 import com.inappstory.sdk.ugc.picker.FileChooseActivity
-import com.inappstory.sdk.utils.ZipLoadCallback
-import com.inappstory.sdk.utils.ZipLoader
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileInputStream
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 import kotlin.math.max
 
 
 internal class UGCEditor : AppCompatActivity() {
     private lateinit var webView: IASWebView
-    private lateinit var loader: ImageView
     private lateinit var closeButton: View
     private lateinit var webViewContainer: View
     private lateinit var loaderContainer: RelativeLayout
-    private lateinit var loaderView: IUGCReaderLoaderView
+    private lateinit var refresh: ImageView
+    private lateinit var loaderViewInterface: IUGCReaderLoaderView
+    private lateinit var loaderView: View
     private lateinit var baseContainer: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -155,17 +153,27 @@ internal class UGCEditor : AppCompatActivity() {
         return data
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     private fun setViews() {
-        webView = findViewById(R.id.ugcWebview)
-        webView.settings.allowFileAccessFromFileURLs = true
-        webView.settings.allowUniversalAccessFromFileURLs = true
-        loader = findViewById(R.id.loader)
+        webView = findViewById(R.id.ugcWebView)
+        refresh = findViewById(R.id.refresh)
         baseContainer = findViewById(R.id.draggable_frame)
         loaderContainer = findViewById(R.id.loaderContainer)
-        loaderView = UGCInAppStoryManager.loaderView ?: UGCLoadProgressBar(this@UGCEditor)
-        loaderView.setIndeterminate(false)
+        loaderViewInterface = UGCInAppStoryManager.loaderView ?: UGCLoadProgressBar(this@UGCEditor)
+        loaderView = loaderViewInterface.getView(this)
+        loaderViewInterface.setIndeterminate(false)
         if (Sizes.isTablet()) {
             baseContainer.setOnClickListener { close() }
+        }
+        refresh.setImageDrawable(
+            resources.getDrawable(
+                AppearanceManager.getCommonInstance().csRefreshIcon()
+            )
+        )
+        refresh.setOnClickListener {
+            interruption.active = false
+            changeView(loaderView, refresh)
+            loadEditor(intent.getStringExtra("url"))
         }
         closeButton = findViewById(R.id.close_button)
         closeButton.setOnClickListener { close() }
@@ -185,7 +193,26 @@ internal class UGCEditor : AppCompatActivity() {
                 }
             }
         }
-        loaderContainer.addView(loaderView.getView(this))
+        loaderContainer.addView(loaderViewInterface.getView(this))
+    }
+
+    private fun changeView(view1: View?, view2: View?) {
+        if (view1 == null || view2 == null) return
+        view1.alpha = 0f
+        view1.visibility = View.VISIBLE
+        view2.visibility = View.VISIBLE
+        val valueAnimator = ValueAnimator.ofFloat(0f, 1f).setDuration(500)
+        valueAnimator.addUpdateListener { animation ->
+            view1.alpha = animation.animatedValue as Float
+            view2.alpha = 1f - animation.animatedValue as Float
+        }
+        valueAnimator.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                super.onAnimationEnd(animation)
+                view2.visibility = View.GONE
+            }
+        })
+        valueAnimator.start()
     }
 
     private fun saveEditorState() {
@@ -417,7 +444,9 @@ internal class UGCEditor : AppCompatActivity() {
             UGCInAppStoryManager.editorCacheManager.getEditor(
                 resultCallback = object : UseCaseCallback<FilePathAndContent> {
                     override fun onError(message: String?) {
-                        Log.e("UGC_EDITOR_ERROR", message ?: "")
+                        lifecycleScope.launch(Dispatchers.Main) {
+                            changeView(refresh, loaderView)
+                        }
                     }
 
                     override fun onSuccess(result: FilePathAndContent) {
@@ -433,7 +462,7 @@ internal class UGCEditor : AppCompatActivity() {
                     }
                 }, progressCallback = { loadedSize, totalSize ->
                     lifecycleScope.launch(Dispatchers.Main) {
-                        loaderView.setProgress((loadedSize * 100 / totalSize).toInt(), 100)
+                        loaderViewInterface.setProgress((loadedSize * 100 / totalSize).toInt(), 100)
                     }
 
                 },

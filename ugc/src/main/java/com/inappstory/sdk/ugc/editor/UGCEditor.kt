@@ -381,14 +381,14 @@ internal class UGCEditor : AppCompatActivity() {
                                 MimeTypeMap.getFileExtensionFromUrl(filePath)
                             )
 
-                            WebResourceResponse(mimeType, "utf-8", FileInputStream(file))/*.apply {
+                            WebResourceResponse(mimeType, "utf-8", FileInputStream(file)).apply {
                                 val headers = HashMap(responseHeaders ?: emptyMap())
                                 headers["Access-Control-Allow-Origin"] = "*"
                                 responseHeaders = headers
-                            }*/
+                            }
 
                         } else {
-                            Log.d("InAppStory_UGC", "File ${filePath} not exists")
+                            Log.d("InAppStory_UGC", "File $filePath not exists")
                             super.shouldInterceptRequest(view, request)
                         }
                     } else {

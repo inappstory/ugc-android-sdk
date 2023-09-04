@@ -27,6 +27,7 @@ import com.inappstory.sdk.share.IASShareManager
 import com.inappstory.sdk.stories.api.models.WebResource
 import com.inappstory.sdk.stories.api.models.logs.WebConsoleLog
 import com.inappstory.sdk.stories.ui.views.IASWebView
+import com.inappstory.sdk.stories.ui.views.IASWebViewClient
 import com.inappstory.sdk.stories.utils.Sizes
 import com.inappstory.sdk.ugc.IUGCReaderLoaderView
 import com.inappstory.sdk.ugc.R
@@ -326,48 +327,7 @@ internal class UGCEditor : AppCompatActivity() {
             }
         }
 
-        webView.webViewClient = object : WebViewClient() {
-            override fun shouldInterceptRequest(
-                view: WebView,
-                request: WebResourceRequest
-            ): WebResourceResponse? {
-                // `http://file-assets` - special protocol and Uri first part
-                // Bcz WebView can`t fetch with `file` protocol
-                return if (request.url.toString().startsWith("http://file-assets")) {
-
-                    // convert to normal Uri and get decoded path (decode %20 to space and etc)
-                    val filePath = Uri.parse(
-                        request.url.toString().replace("http://file-assets", "file://")
-                    ).path
-                    if (filePath != null) {
-
-                        val file = File(filePath)
-                        if (file.exists()) {
-
-                            val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(
-                                MimeTypeMap.getFileExtensionFromUrl(filePath)
-                            )
-
-                            WebResourceResponse(mimeType, "utf-8", FileInputStream(file))/*.apply {
-                                val headers = HashMap(responseHeaders ?: emptyMap())
-                                headers["Access-Control-Allow-Origin"] = "*"
-                                responseHeaders = headers
-                            }*/
-
-                        } else {
-                            Log.d("InAppStory_UGC", "File ${filePath} not exists")
-                            super.shouldInterceptRequest(view, request)
-                        }
-                    } else {
-                        Log.d("InAppStory_UGC", "Empty filePath for Uri ${request.url}")
-                        super.shouldInterceptRequest(view, request)
-                    }
-
-                } else {
-                    super.shouldInterceptRequest(view, request)
-                }
-            }
-        }
+        webView.webViewClient = IASWebViewClient()
     }
 
 
@@ -419,11 +379,11 @@ internal class UGCEditor : AppCompatActivity() {
                 var arr = arrayOf<String>()
                 if (resultCode == Activity.RESULT_OK) {
                     val files = data?.getStringArrayExtra("files")
-                   /* files?.let {
-                        if (it.isNotEmpty())
-                            if (it[0].endsWith("mp4"))
-                                testSend(File(it[0]))
-                    }*/
+                    /* files?.let {
+                         if (it.isNotEmpty())
+                             if (it[0].endsWith("mp4"))
+                                 testSend(File(it[0]))
+                     }*/
                     arr = files?.map {
                         Uri.fromFile(File(it)).toString()
                             .replace("file://", "http://file-assets")

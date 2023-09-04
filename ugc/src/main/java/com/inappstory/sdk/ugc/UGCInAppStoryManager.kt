@@ -3,7 +3,7 @@ package com.inappstory.sdk.ugc
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
-import androidx.core.util.Pair
+import android.util.Pair
 import com.inappstory.sdk.InAppStoryManager
 import com.inappstory.sdk.network.JsonParser
 import com.inappstory.sdk.stories.api.models.Session

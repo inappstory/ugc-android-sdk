@@ -53,6 +53,7 @@ class GetZipFileUseCase(
                     try {
                         fileState = Downloader.downloadOrGetFile(
                             url,
+                            false,
                             InAppStoryService.getInstance().infiniteCache,
                             zipFile,
                             object : FileLoadProgressCallback {

@@ -25,6 +25,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import com.inappstory.sdk.AppearanceManager
 import com.inappstory.sdk.InAppStoryManager
+import com.inappstory.sdk.network.ApiSettings
 import com.inappstory.sdk.network.JsonParser
 import com.inappstory.sdk.network.jsapiclient.JsApiClient
 import com.inappstory.sdk.stories.api.models.logs.WebConsoleLog
@@ -114,7 +115,10 @@ internal class UGCEditor : AppCompatActivity() {
     }
 
     fun sendApiRequest(data: String?) {
-        JsApiClient(this).sendApiRequest(
+        JsApiClient(
+            this,
+            ApiSettings.getInstance().host
+        ).sendApiRequest(
             data
         ) { result, cb -> loadJsApiResponse(modifyJsResult(result), cb) }
     }

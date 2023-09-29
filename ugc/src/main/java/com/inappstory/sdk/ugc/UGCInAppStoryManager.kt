@@ -110,13 +110,11 @@ object UGCInAppStoryManager {
                 editor.versionTemplate.isNullOrEmpty() ||
                 editor.urlTemplate.isNullOrEmpty()
             ) return editor.url ?: ""
-            var actualVer: String? = null
             editor.versionsMap.sortedByDescending { it.minBuild }.forEach {
-                actualVer = it.editor
-                if (BuildConfig.VERSION_CODE >= it.minBuild) return@forEach
-            }
-            actualVer?.let {
-                return editor.urlTemplate.replace(editor.versionTemplate, it)
+                it.editor?.let { ver ->
+                    if (BuildConfig.VERSION_CODE >= it.minBuild)
+                        return editor.urlTemplate.replace(editor.versionTemplate, ver)
+                }
             }
             return editor.url ?: ""
         }

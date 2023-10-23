@@ -13,6 +13,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -37,6 +38,7 @@ import com.inappstory.sdk.ugc.R
 import com.inappstory.sdk.ugc.UGCInAppStoryManager
 import com.inappstory.sdk.ugc.cache.FilePathAndContent
 import com.inappstory.sdk.ugc.cache.UseCaseCallback
+import com.inappstory.sdk.ugc.extinterfaces.IUgcEditor
 import com.inappstory.sdk.ugc.picker.FileChooseActivity
 import kotlinx.coroutines.*
 import java.io.File
@@ -55,16 +57,17 @@ internal class UGCEditor : AppCompatActivity() {
     private lateinit var loaderView: View
     private lateinit var baseContainer: View
 
+    @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         interruption = DownloadInterruption()
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         setContentView(R.layout.cs_activity_ugc)
         UGCInAppStoryManager.editorCallback.editorEvent("editorWillShow");
+        ugcInitData = intent.getSerializableExtra("ugcInitData") as HashMap<String, Any?>?
         setViews()
         initWebView()
-        config = intent.getStringExtra("editorConfig")
-        loadEditor(intent.getStringExtra("url"))
+        loadEditor()
     }
 
 
@@ -177,7 +180,7 @@ internal class UGCEditor : AppCompatActivity() {
         refresh.setOnClickListener {
             interruption.active = false
             changeView(loaderView, refresh)
-            loadEditor(intent.getStringExtra("url"))
+            loadEditor()
         }
         closeButton = findViewById(R.id.close_button)
         closeButton.setOnClickListener { close() }
@@ -442,15 +445,73 @@ internal class UGCEditor : AppCompatActivity() {
          }
      }*/
 
+    private fun loadError() {
+        lifecycleScope.launch(Dispatchers.Main) {
+            changeView(refresh, loaderView)
+        }
+    }
 
-    private fun loadEditor(path: String?) {
+    private fun genEditorConfig(
+        context: Context,
+        ugcEditor: IUgcEditor,
+        ugcInitData: HashMap<String, Any?>? = null
+    ): EditorConfig {
+        return EditorConfig().apply {
+            userId = InAppStoryManager.getInstance()?.userId
+            deviceId = Settings.Secure.getString(
+                context.contentResolver,
+                Settings.Secure.ANDROID_ID
+            )
+            lang = (Locale.getDefault().toLanguageTag()).lowercase()
+            appPackageId = context.packageName
+            sdkVersion = InAppStoryManager.getLibraryVersion().first
+            ugcSdkVersion = UGCInAppStoryManager.getLibraryVersion().first
+            sessionId = ugcEditor.session() ?: ""
+            config = ugcEditor.config()
+            apiKey = InAppStoryManager.getInstance().apiKey
+                ?: context.resources.getString(R.string.csApiKey)
+            storyPayload = ugcInitData
+        }
+    }
+
+    private var ugcInitData: HashMap<String, Any?>? = null
+
+    private var messageNames: Array<String>? = null
+
+    private var messages: Array<String>? = null
+
+    private var galleryFileMaxCount: Int = 10
+    private var filePickerPhotoSizeLimit: Long = 30000000L
+    private var filePickerVideoSizeLimit: Long = 30000000L
+    private var filePickerFileDurationLimit: Long = 30L
+    private fun saveLocalProperties(ugcEditor: IUgcEditor) {
+        val editorConfig = genEditorConfig(
+            context = this,
+            ugcEditor = ugcEditor,
+            ugcInitData = ugcInitData
+        )
+        config = JsonParser.getJson(editorConfig)
+        ugcEditor.messages()?.let {
+            val (keys, values) = it.toList().unzip()
+            messageNames = keys.toTypedArray()
+            messages = values.toTypedArray()
+        }
+        galleryFileMaxCount =
+            editorConfig.config?.getOrElse("filePickerFilesLimit") { 10 } as Int
+        filePickerPhotoSizeLimit =
+            editorConfig.config?.getOrElse("filePickerImageMaxSizeInBytes") { 30000000L } as Long
+        filePickerVideoSizeLimit =
+            editorConfig.config?.getOrElse("filePickerVideoMaxSizeInBytes") { 30000000L } as Long
+        filePickerFileDurationLimit =
+            editorConfig.config?.getOrElse("filePickerVideoMaxLengthInSeconds") { 30L } as Long
+    }
+
+    private fun loadEditor() {
         lifecycleScope.launch(Dispatchers.IO) {
             UGCInAppStoryManager.editorCacheManager.getEditor(
                 resultCallback = object : UseCaseCallback<FilePathAndContent> {
                     override fun onError(message: String?) {
-                        lifecycleScope.launch(Dispatchers.Main) {
-                            changeView(refresh, loaderView)
-                        }
+                        loadError()
                     }
 
                     override fun onSuccess(result: FilePathAndContent) {
@@ -464,17 +525,28 @@ internal class UGCEditor : AppCompatActivity() {
 
 
                     }
-                }, progressCallback = { loadedSize, totalSize ->
+                },
+                modelCallback = object : UseCaseCallback<IUgcEditor> {
+                    override fun onError(message: String?) {
+                        loadError()
+                    }
+
+                    override fun onSuccess(result: IUgcEditor) {
+                        saveLocalProperties(result)
+                    }
+                },
+                progressCallback = { loadedSize, totalSize ->
                     lifecycleScope.launch(Dispatchers.Main) {
-                        loaderViewInterface.setProgress((loadedSize * 100 / totalSize).toInt(), 100)
+                        loaderViewInterface.setProgress(
+                            (loadedSize * 100 / totalSize).toInt(),
+                            100
+                        )
                     }
 
                 },
-                interruption = interruption,
-                editorUrl = path ?: ""
+                interruption = interruption
             )
         }
-
         /*val resourceList = ArrayList<WebResource>()
         val urlParts: Array<String> = ZipLoader.urlParts(path)
         ZipLoader.getInstance().downloadAndUnzip(resourceList, path, urlParts[0], callback, "ugc")*/
@@ -556,9 +628,13 @@ internal class UGCEditor : AppCompatActivity() {
         }
     }
 
+
+    var ugcEditor: IUgcEditor? = null
+
     fun openFilePicker(
         data: String
     ): Void? {
+        var editor = ugcEditor ?: return null
         val config = JsonParser.fromJson(
             data,
             EditorOpenFilePickerConfig::class.java
@@ -589,16 +665,6 @@ internal class UGCEditor : AppCompatActivity() {
             }
         )
 
-        val messageNames = intent.getStringArrayExtra("messageNames")
-        val messages = intent.getStringArrayExtra("messages")
-        val filePickerFilesLimit = intent.getIntExtra("filePickerFilesLimit", 10)
-        val filePickerPhotoSizeLimit =
-            intent.getLongExtra("filePickerImageMaxSizeInBytes", 30000000L)
-        val filePickerVideoSizeLimit =
-            intent.getLongExtra("filePickerVideoMaxSizeInBytes", 30000000L)
-        val filePickerFileDurationLimit =
-            intent.getLongExtra("filePickerVideoMaxLengthInSeconds", 30)
-
         newIntent.putStringArrayListExtra(
             "acceptTypes",
             ArrayList(acceptTypes)
@@ -610,7 +676,7 @@ internal class UGCEditor : AppCompatActivity() {
             "allowMultiple",
             config.multiple == true
         )
-        newIntent.putExtra("filePickerFilesLimit", filePickerFilesLimit)
+        newIntent.putExtra("filePickerFilesLimit", galleryFileMaxCount)
         newIntent.putExtra("filePickerImageMaxSizeInBytes", filePickerPhotoSizeLimit)
         newIntent.putExtra("filePickerVideoMaxSizeInBytes", filePickerVideoSizeLimit)
         newIntent.putExtra("filePickerVideoMaxLengthInSeconds", filePickerFileDurationLimit)

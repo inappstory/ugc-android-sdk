@@ -629,12 +629,9 @@ internal class UGCEditor : AppCompatActivity() {
     }
 
 
-    var ugcEditor: IUgcEditor? = null
-
     fun openFilePicker(
         data: String
     ): Void? {
-        var editor = ugcEditor ?: return null
         val config = JsonParser.fromJson(
             data,
             EditorOpenFilePickerConfig::class.java

@@ -126,6 +126,11 @@ internal class UGCEditor : AppCompatActivity() {
         ) { result, cb -> loadJsApiResponse(modifyJsResult(result), cb) }
     }
 
+    fun vibrate(vibratePattern: IntArray) {
+        InAppStoryManager.getInstance()?.let {
+            it.vibrateUtils.vibrate(this, vibratePattern)
+        }
+    }
 
     fun sendEditorEvent(event: String, payload: String?) {
         UGCInAppStoryManager.editorCallback.editorEvent(event, HashMap(JsonParser.toMap(payload)))

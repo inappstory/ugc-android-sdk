@@ -28,6 +28,11 @@ internal class UGCJSInterface(val editor: UGCEditor) {
     }
 
     @JavascriptInterface
+    fun vibrate(vibratePattern: IntArray) {
+        editor.vibrate(vibratePattern)
+    }
+
+    @JavascriptInterface
     fun openFilePicker(data: String) {
         editor.openFilePicker(data)
     }

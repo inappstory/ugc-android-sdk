@@ -3,13 +3,13 @@ apply plugin: 'kotlin-android'
 
 
 android {
-    compileSdk 31
+    compileSdk 33
 
     defaultConfig {
         minSdk 21
-        targetSdk 31
-        versionCode 112
-        versionName "1.2.2"
+        targetSdk 33
+        versionCode 120
+        versionName "1.2.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"

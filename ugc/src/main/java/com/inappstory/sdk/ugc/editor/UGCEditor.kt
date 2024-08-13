@@ -1,5 +1,6 @@
 package com.inappstory.sdk.ugc.editor
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -233,6 +234,7 @@ internal class UGCEditor : AppCompatActivity() {
     }
 
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private fun addBroadcastListener() {
         broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
@@ -244,7 +246,12 @@ internal class UGCEditor : AppCompatActivity() {
 
         }
         val filter = IntentFilter(CLOSE_UGC_EDITOR_MSG)
-        registerReceiver(broadcastReceiver, filter)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            registerReceiver(broadcastReceiver, filter, RECEIVER_EXPORTED)
+        } else {
+            registerReceiver(broadcastReceiver, filter)
+        }
     }
 
     private fun filterTypes(types: List<String>?): Pair<String?, ArrayList<String>> {

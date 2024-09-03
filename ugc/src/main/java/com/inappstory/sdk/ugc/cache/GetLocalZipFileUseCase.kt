@@ -13,7 +13,6 @@ class GetLocalZipFileUseCase(var url: String) {
             callback.onSuccess(cachedArchive)
             true
         } else {
-            callback.onError("No cached files")
             false
         }
     }

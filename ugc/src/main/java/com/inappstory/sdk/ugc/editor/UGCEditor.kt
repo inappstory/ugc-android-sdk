@@ -294,7 +294,11 @@ internal class UGCEditor : AppCompatActivity() {
 
         }
         val filter = IntentFilter(CLOSE_UGC_EDITOR_MSG)
-        registerReceiver(broadcastReceiver, filter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            registerReceiver(broadcastReceiver, filter, RECEIVER_EXPORTED)
+        } else {
+            registerReceiver(broadcastReceiver, filter)
+        }
     }
 
     private fun filterTypes(types: List<String>?): Pair<String?, ArrayList<String>> {

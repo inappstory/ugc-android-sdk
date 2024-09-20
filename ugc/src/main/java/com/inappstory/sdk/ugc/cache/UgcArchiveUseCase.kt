@@ -44,7 +44,7 @@ class UgcArchiveUseCase(
     private fun getLocalArchive(): Boolean {
         downloadLog.generateRequestLog(url)
         return GetLocalZipFileUseCase(
-            url = url
+            uniqueKey = uniqueKey
         ).get(
             useCaseCallback,
             cache

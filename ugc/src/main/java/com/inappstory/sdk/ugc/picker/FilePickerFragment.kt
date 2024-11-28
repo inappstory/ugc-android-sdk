@@ -12,7 +12,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.inappstory.sdk.ugc.R
 import com.inappstory.sdk.ugc.camerax.BackPressedFragment
@@ -31,7 +30,7 @@ internal class FilePickerFragment : BackPressedFragment() {
     ): View? {
 
 
-        return inflater.inflate(R.layout.cs_file_picker_fragment, null)
+        return inflater.inflate(R.layout.ugc_cs_file_picker_fragment, null)
     }
 
     private lateinit var uploadButton: FloatingActionButton

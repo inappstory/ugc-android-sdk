@@ -15,7 +15,7 @@ class CameraFlowFragment : BackPressedFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.camera_flow_fragment, null)
+        return inflater.inflate(R.layout.ugc_cs_camera_flow_fragment, null)
     }
 
 

@@ -37,7 +37,7 @@ internal class FileChooseActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.cs_file_choose_activity)
+        setContentView(R.layout.ugc_cs_file_choose_activity)
 
 
 

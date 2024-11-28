@@ -62,7 +62,7 @@ internal class UGCEditor : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         interruption = DownloadInterruption()
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-        setContentView(R.layout.cs_activity_ugc)
+        setContentView(R.layout.ugc_cs_activity_ugc)
         UGCInAppStoryManager.editorCallback.editorEvent("editorWillShow");
         ugcInitData = intent.getSerializableExtra("ugcInitData") as HashMap<String, Any?>?
         setViews()

@@ -15,7 +15,7 @@ class VideoPreviewFragment : PreviewFragment() {
         savedInstanceState: Bundle?
     ): View? {
         filePath = arguments?.getString("filePath") ?: ""
-        return inflater.inflate(R.layout.cs_video_preview_fragment, null)
+        return inflater.inflate(R.layout.ugc_cs_video_preview_fragment, null)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

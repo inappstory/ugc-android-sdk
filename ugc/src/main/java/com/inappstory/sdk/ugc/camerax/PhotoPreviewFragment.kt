@@ -16,7 +16,7 @@ class PhotoPreviewFragment : PreviewFragment() {
         savedInstanceState: Bundle?
     ): View? {
         filePath = arguments?.getString("filePath") ?: ""
-        return inflater.inflate(R.layout.cs_photo_preview_fragment, null)
+        return inflater.inflate(R.layout.ugc_cs_photo_preview_fragment, null)
     }
 
 

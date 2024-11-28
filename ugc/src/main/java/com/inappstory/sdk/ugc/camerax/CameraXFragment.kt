@@ -47,7 +47,7 @@ class CameraXFragment : Fragment(), ImageCapture.OnImageSavedCallback {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.cs_camera_x_fragment, null)
+        return inflater.inflate(R.layout.ugc_cs_camera_x_fragment, null)
     }
 
 

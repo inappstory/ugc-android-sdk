@@ -2,7 +2,6 @@ package com.inappstory.sdk.ugc.picker
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -68,15 +67,15 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FilePreviewsHolder {
         val v = when (viewType) {
             -1 -> LayoutInflater.from(parent.context).inflate(
-                R.layout.cs_file_camera_cell,
+                R.layout.ugc_cs_file_camera_cell,
                 parent, false
             )
             -2 -> LayoutInflater.from(parent.context).inflate(
-                R.layout.cs_file_no_access_cell,
+                R.layout.ugc_cs_file_no_access_cell,
                 parent, false
             )
             else -> LayoutInflater.from(parent.context).inflate(
-                R.layout.cs_file_picker_cell,
+                R.layout.ugc_cs_file_picker_cell,
                 parent, false
             )
         }

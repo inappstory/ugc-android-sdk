@@ -43,6 +43,9 @@ import com.inappstory.sdk.ugc.picker.FileChooseActivity
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileInputStream
+import java.io.UnsupportedEncodingException
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.math.max
 
@@ -466,11 +469,15 @@ internal class UGCEditor : AppCompatActivity() {
         ugcInitData: HashMap<String, Any?>? = null
     ): EditorConfig {
         return EditorConfig().apply {
-            userId = InAppStoryManager.getInstance()?.userId
-            deviceId = Settings.Secure.getString(
-                context.contentResolver,
-                Settings.Secure.ANDROID_ID
-            )
+            userId = encode(InAppStoryManager.getInstance()?.userId)
+            deviceId = if (InAppStoryManager.getInstance()?.isDeviceIDEnabled != false) {
+                Settings.Secure.getString(
+                    context.contentResolver,
+                    Settings.Secure.ANDROID_ID
+                )
+            } else {
+                ""
+            }
             lang = (Locale.getDefault().toLanguageTag()).lowercase()
             appPackageId = context.packageName
             sdkVersion = InAppStoryManager.getLibraryVersion().first
@@ -481,6 +488,15 @@ internal class UGCEditor : AppCompatActivity() {
                 ?: context.resources.getString(R.string.csApiKey)
             storyPayload = ugcInitData
         }
+    }
+
+    private fun encode(toEncode: String?): String? {
+        try {
+            return URLEncoder.encode(toEncode, StandardCharsets.UTF_8.name())
+        } catch (e: UnsupportedEncodingException) {
+        } catch (e: Exception) {
+        }
+        return toEncode
     }
 
     private var ugcInitData: HashMap<String, Any?>? = null

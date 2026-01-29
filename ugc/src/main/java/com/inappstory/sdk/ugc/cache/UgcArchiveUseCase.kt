@@ -1,14 +1,13 @@
 package com.inappstory.sdk.ugc.cache
 
+import com.inappstory.sdk.core.IASCore
 import com.inappstory.sdk.lrudiskcache.CacheJournalItem
 import com.inappstory.sdk.lrudiskcache.LruDiskCache
 import com.inappstory.sdk.stories.cache.DownloadInterruption
-import com.inappstory.sdk.stories.cache.Downloader
 import com.inappstory.sdk.stories.cache.FileLoadProgressCallback
-import com.inappstory.sdk.stories.cache.FilesDownloadManager
+import com.inappstory.sdk.stories.cache.FilesDownloader
 import com.inappstory.sdk.stories.cache.usecases.FinishDownloadFileCallback
 import com.inappstory.sdk.stories.cache.usecases.GetCacheFileUseCase
-import com.inappstory.sdk.stories.statistic.ProfilingManager
 import com.inappstory.sdk.utils.ProgressCallback
 import com.inappstory.sdk.utils.StringsUtils
 import java.io.File
@@ -16,13 +15,13 @@ import java.io.IOException
 import java.util.UUID
 
 class UgcArchiveUseCase(
-    private val filesDownloadManager: FilesDownloadManager,
+    private val core: IASCore,
     private val url: String,
     private val progressCallback: ProgressCallback,
     private val interruption: DownloadInterruption?,
     private val useCaseCallback: UseCaseCallback<File>
 ) : GetCacheFileUseCase<Unit>(
-    filesDownloadManager
+    core
 ) {
     private val type: String = "Archive"
     private val archiveName = getArchiveName(url)
@@ -38,7 +37,7 @@ class UgcArchiveUseCase(
                 archiveName +
                 File.separator +
                 uniqueKey +
-                Downloader.getFileExtensionFromUrl(url);
+                FilesDownloader.getFileExtensionFromUrl(url);
     }
 
     private fun getLocalArchive(): Boolean {
@@ -70,7 +69,7 @@ class UgcArchiveUseCase(
             return
         }
         val hash = UUID.randomUUID().toString()
-        ProfilingManager.getInstance().addTask("ugc_download", hash)
+        core.statistic().profiling().addTask("ugc_download", hash)
         try {
 
             val responseLog = downloadLog.generateResponseLog(false, filePath)
@@ -78,7 +77,7 @@ class UgcArchiveUseCase(
                 FinishDownloadFileCallback { fileState ->
                     downloadLog.sendResponseLog()
                     if (fileState?.file != null) {
-                        ProfilingManager.getInstance().setReady(hash)
+                        core.statistic().profiling().setReady(hash)
                         val cacheJournalItem = generateCacheItem()
                         cacheJournalItem.downloadedSize = fileState.downloadedSize
                         cacheJournalItem.size = fileState.totalSize
@@ -95,7 +94,7 @@ class UgcArchiveUseCase(
             cache[uniqueKey]?.also {
                 offset = it.downloadedSize
             }
-            Downloader.downloadFile(
+            core.contentLoader().downloader().downloadFile(
                 url,
                 File(filePath),
                 object : FileLoadProgressCallback {
@@ -112,7 +111,6 @@ class UgcArchiveUseCase(
                 interruption,
                 offset,
                 -1,
-                filesDownloadManager,
                 callback
             )
         } catch (e: Exception) {
@@ -149,6 +147,6 @@ class UgcArchiveUseCase(
     }
 
     override fun getCache(): LruDiskCache {
-        return filesDownloadManager.cachesHolder.infiniteCache
+        return core.contentLoader().infiniteCache
     }
 }

@@ -5,7 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.util.Pair
 import com.inappstory.sdk.InAppStoryManager
-import com.inappstory.sdk.stories.ui.ScreensManager
+import com.inappstory.sdk.core.IASCore
+import com.inappstory.sdk.core.UseIASCoreCallback
 import com.inappstory.sdk.ugc.cache.EditorCacheManager
 import com.inappstory.sdk.ugc.editor.EmptyUGCEditorCallback
 import com.inappstory.sdk.ugc.editor.UGCEditor
@@ -75,12 +76,18 @@ object UGCInAppStoryManager {
     }
 
     private fun openUgcEditorScreen(context: Context, ugcInitData: HashMap<String, Any?>? = null) {
-        ScreensManager.getInstance().ugcCloseCallback =
-            ScreensManager.CloseUgcReaderCallback {
-                CoroutineScope(Dispatchers.Main).launch {
-                    closeUGCEditor()
-                }
+        InAppStoryManager.useCore(object : UseIASCoreCallback() {
+            override fun use(core: IASCore) {
+               /* ScreensManager.getInstance().ugcCloseCallback =
+                    ScreensManager.CloseUgcReaderCallback {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            closeUGCEditor()
+                        }
+                    }
+                core.screensManager().*/
             }
+        })
+
         CoroutineScope(Dispatchers.Main).launch {
             val intent = Intent(
                 context,

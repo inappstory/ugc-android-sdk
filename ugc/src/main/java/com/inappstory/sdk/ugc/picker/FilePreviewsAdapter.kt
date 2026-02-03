@@ -18,14 +18,14 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
     var picker: FilePicker
     private val previews = arrayListOf<FilePicker.FileData>()
     private val cache = FilePreviewsCache(false)
-    var cameraCallback: OpenCameraClickCallback
-    var clickCallback: FileClickCallback
-    var noAccessCallback: NoAccessCallback
-    var hasFileAccess = false
-    var allowMultipleSelection = false
-    var galleryFileMaxCount = 0
-
-    var translations: Map<String, String> = emptyMap()
+    private val cameraCallback: OpenCameraClickCallback
+    private val storageCallback: OpenStorageClickCallback
+    private val clickCallback: FileClickCallback
+    private val noAccessCallback: NoAccessCallback
+    private var hasFileAccess = false
+    private var allowMultipleSelection = false
+    private var galleryFileMaxCount = 0
+    private val translations: MutableMap<String, String> = hashMapOf()
 
     constructor(
         context: Context?,
@@ -34,15 +34,17 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
         mimeTypes: List<String>,
         clickCallback: FileClickCallback,
         cameraCallback: OpenCameraClickCallback,
+        storageCallback: OpenStorageClickCallback,
         noAccessCallback: NoAccessCallback,
         galleryFileMaxCount: Int,
         translations: Map<String, String>,
         pickerFilter: PickerFilter
     ) {
         this.noAccessCallback = noAccessCallback
-        this.translations = translations
+        this.translations.putAll(translations)
         this.galleryFileMaxCount = galleryFileMaxCount
         this.cameraCallback = cameraCallback
+        this.storageCallback = storageCallback
         this.clickCallback = clickCallback
         this.hasFileAccess = hasFileAccess
         this.allowMultipleSelection = allowMultipleSelection
@@ -71,10 +73,17 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
                 R.layout.cs_file_camera_cell,
                 parent, false
             )
+
             -2 -> LayoutInflater.from(parent.context).inflate(
+                R.layout.cs_file_storage_cell,
+                parent, false
+            )
+
+            -3 -> LayoutInflater.from(parent.context).inflate(
                 R.layout.cs_file_no_access_cell,
                 parent, false
             )
+
             else -> LayoutInflater.from(parent.context).inflate(
                 R.layout.cs_file_picker_cell,
                 parent, false
@@ -88,8 +97,8 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
     private val activePositions: ArrayList<Int> = arrayListOf()
 
     override fun onBindViewHolder(holder: FilePreviewsHolder, position: Int) {
-        val intPos = Integer.valueOf(position - 1)
-        if (position != 0) {
+        val intPos = Integer.valueOf(position - 2)
+        if (position > 1) {
             if (hasFileAccess) {
                 val file = previews[position - 1]
                 val path = file.name
@@ -150,6 +159,7 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
                             return@setOnClickListener
                         }
                         activePositions.add(intPos)
+                        Log.d("PhotoPicker", "Old $path")
                         clickCallback.select(SelectedFile(path, file.type))
                         if (!allowMultipleSelection) {
                             val i: MutableIterator<Int> = activePositions.iterator()
@@ -174,8 +184,10 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
                 text.text = translations["galleryAccessText"] ?: ""
                 holder.itemView.setOnClickListener { noAccessCallback.click() }
             }
-        } else {
+        } else if (position == 0) {
             holder.itemView.setOnClickListener { cameraCallback.open() }
+        } else {
+            holder.itemView.setOnClickListener { storageCallback.open() }
         }
     }
 
@@ -186,15 +198,6 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
             Toast.LENGTH_SHORT
         ).show()
     }
-
-    private fun notifyChanges() {
-        notifyDataSetChanged()
-    }
-
-    override fun getItemViewType(position: Int): Int =
-        if (position == 0) -1
-        else if (!hasFileAccess && position == 1) -2
-        else position
 
     @SuppressLint("DefaultLocale")
     private fun convertLongToTime(seconds: Long): String {
@@ -207,8 +210,24 @@ internal class FilePreviewsAdapter : RecyclerView.Adapter<FilePreviewsHolder> {
             String.format("%02d:%02d", m, s)
     }
 
+    private fun notifyChanges() {
+        notifyDataSetChanged()
+    }
 
-    override fun getItemId(position: Int): Long = if (position == 0) -1 else position.toLong()
+    override fun getItemViewType(position: Int): Int =
+        if (position == 0) -1
+        else if (position == 1) -2
+        else if (!hasFileAccess && position == 2) -3
+        else position
 
-    override fun getItemCount(): Int = (if (hasFileAccess) previews.size else 1) + 1
+    override fun getItemId(position: Int): Long =
+        when (position) {
+            0 -> -1
+            1 -> -2
+            else -> position.toLong()
+        }
+
+    override fun getItemCount(): Int {
+        return (if (hasFileAccess) previews.size else 1) + 2
+    }
 }

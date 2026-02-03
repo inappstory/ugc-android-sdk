@@ -12,7 +12,8 @@ internal class PhotoVideoPicker : FilePicker() {
         pickerFilter: PickerFilter,
         mimeTypes: List<String>
     ): List<FileData> {
-        return getImagesPath(
+        return emptyList()
+       /* return getImagesPath(
             context = context,
             uri = listOf(
                 UriAndType(uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI, "video"),
@@ -22,6 +23,6 @@ internal class PhotoVideoPicker : FilePicker() {
             ),
             pickerFilter = pickerFilter,
             mimeTypes = mimeTypes
-        )
+        )*/
     }
 }

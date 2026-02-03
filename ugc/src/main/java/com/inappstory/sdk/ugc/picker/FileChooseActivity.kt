@@ -4,7 +4,10 @@ import android.annotation.TargetApi
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.widget.ImageView
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
@@ -16,32 +19,11 @@ import com.inappstory.sdk.ugc.camerax.CameraFlowFragment
 internal class FileChooseActivity : AppCompatActivity() {
     val picker: FilePicker? = null
 
-    @TargetApi(23)
-    private fun askPermissions() {
-        val readPermission = "android.permission.READ_EXTERNAL_STORAGE"
-        val writePermission = "android.permission.WRITE_EXTERNAL_STORAGE"
-        val permissions = arrayListOf<String>()
-        if (ActivityCompat.checkSelfPermission(this, readPermission)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            permissions.add(readPermission)
-        }
-        if (ActivityCompat.checkSelfPermission(this, writePermission)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            permissions.add(writePermission)
-        }
-        if (permissions.isNotEmpty())
-            requestPermissions(permissions.toTypedArray(), 200)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.cs_file_choose_activity)
 
-
-
-        if (savedInstanceState == null) {
+         if (savedInstanceState == null) {
             val bundle = Bundle().apply {
                 putStringArrayList(
                     "acceptTypes",
@@ -81,7 +63,7 @@ internal class FileChooseActivity : AppCompatActivity() {
         }
     }
 
-    private fun openFragment(fragment: Fragment, tag: String) {
+   private fun openFragment(fragment: Fragment, tag: String) {
         try {
             val fragmentManager =
                 supportFragmentManager

@@ -36,6 +36,8 @@ import com.inappstory.sdk.utils.ZipLoader
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.lang.Exception
 import kotlin.math.max
 
 
@@ -50,6 +52,7 @@ internal class UGCEditor : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         setContentView(R.layout.cs_activity_ugc)
         UGCInAppStoryManager.editorCallback.editorEvent("editorWillShow");
@@ -276,6 +279,8 @@ internal class UGCEditor : AppCompatActivity() {
 
     private val videoType = "video"
     private val imageType = "image"
+    private fun Uri.getMimeType(context: Context): String? = context.contentResolver.getType(this)
+        ?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
 
     private fun initWebView() {
         webView.settings.minimumFontSize = 1
@@ -317,35 +322,48 @@ internal class UGCEditor : AppCompatActivity() {
             ): WebResourceResponse? {
                 // `http://file-assets` - special protocol and Uri first part
                 // Bcz WebView can`t fetch with `file` protocol
-                return if (request.url.toString().startsWith("http://file-assets")) {
+                val url = request.url.toString()
+                return if (url.startsWith("http://file-assets")) {
+                    if (url.startsWith("http://file-assets/media")) {
+                        val newUri = Uri.parse(url.replace("http://file-assets/", "content://"))
+                        try {
+                            val mimeType = newUri.getMimeType(view.context)
+                            val inputStream = view.context.contentResolver.openInputStream(newUri)
+                            WebResourceResponse(mimeType, "utf-8", inputStream)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            super.shouldInterceptRequest(view, request)
+                        }
+                    } else {
+                        val filePath = Uri.parse(
+                            url.replace("http://file-assets", "file://")
+                        ).path
+                        if (filePath != null) {
 
-                    // convert to normal Uri and get decoded path (decode %20 to space and etc)
-                    val filePath = Uri.parse(
-                        request.url.toString().replace("http://file-assets", "file://")
-                    ).path
-                    if (filePath != null) {
+                            val file = File(filePath)
+                            if (file.exists()) {
 
-                        val file = File(filePath)
-                        if (file.exists()) {
+                                val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+                                    MimeTypeMap.getFileExtensionFromUrl(filePath)
+                                )
 
-                            val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(
-                                MimeTypeMap.getFileExtensionFromUrl(filePath)
-                            )
-
-                            WebResourceResponse(mimeType, "utf-8", FileInputStream(file))/*.apply {
+                                WebResourceResponse(mimeType, "utf-8", FileInputStream(file))/*.apply {
                                 val headers = HashMap(responseHeaders ?: emptyMap())
                                 headers["Access-Control-Allow-Origin"] = "*"
                                 responseHeaders = headers
                             }*/
 
+                            } else {
+                                Log.d("InAppStory_UGC", "File ${filePath} not exists")
+                                super.shouldInterceptRequest(view, request)
+                            }
                         } else {
-                            Log.d("InAppStory_UGC", "File ${filePath} not exists")
+                            Log.d("InAppStory_UGC", "Empty filePath for Uri ${request.url}")
                             super.shouldInterceptRequest(view, request)
                         }
-                    } else {
-                        Log.d("InAppStory_UGC", "Empty filePath for Uri ${request.url}")
-                        super.shouldInterceptRequest(view, request)
                     }
+                    // convert to normal Uri and get decoded path (decode %20 to space and etc)
+
 
                 } else {
                     super.shouldInterceptRequest(view, request)
@@ -353,6 +371,7 @@ internal class UGCEditor : AppCompatActivity() {
             }
         }
     }
+
 
 
     private fun initEditor(data: String?) {
@@ -389,6 +408,8 @@ internal class UGCEditor : AppCompatActivity() {
     }
 
     fun loadEditor(path: String?) {
+        val dir = File(cacheDir.absolutePath + File.separator + "ias_ugc")
+        dir.deleteRecursively()
         val resourceList = ArrayList<WebResource>()
         val urlParts: Array<String> = ZipLoader.urlParts(path)
         ZipLoader.getInstance().downloadAndUnzip(resourceList, path, urlParts[0], callback, "ugc")
@@ -403,11 +424,11 @@ internal class UGCEditor : AppCompatActivity() {
                 var arr = arrayOf<String>()
                 if (resultCode == Activity.RESULT_OK) {
                     val files = data?.getStringArrayExtra("files")
-                   /* files?.let {
-                        if (it.isNotEmpty())
-                            if (it[0].endsWith("mp4"))
-                                testSend(File(it[0]))
-                    }*/
+                    /* files?.let {
+                         if (it.isNotEmpty())
+                             if (it[0].endsWith("mp4"))
+                                 testSend(File(it[0]))
+                     }*/
                     arr = files?.map {
                         Uri.fromFile(File(it)).toString()
                             .replace("file://", "http://file-assets")

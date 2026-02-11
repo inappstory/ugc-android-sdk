@@ -16,7 +16,7 @@
         android:supportsRtl="true">
 
         <provider
-            android:name="androidx.core.content.FileProvider"
+            android:name=".UGCFileProvider"
             android:authorities="${applicationId}.inappstory.sdk.ugc.fileProvider"
             android:exported="false"
             android:grantUriPermissions="true">

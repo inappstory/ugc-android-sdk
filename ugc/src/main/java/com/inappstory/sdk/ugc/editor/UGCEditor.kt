@@ -127,6 +127,7 @@ internal class UGCEditor : AppCompatActivity() {
 
     fun closeEditor() {
         finish()
+        overridePendingTransition(0, 0);
     }
 
     fun editorLoaded(data: String) {
@@ -167,13 +168,11 @@ internal class UGCEditor : AppCompatActivity() {
             if (Build.VERSION.SDK_INT >= 28) {
                 Handler(mainLooper).post {
                     if (window != null && window.decorView.rootWindowInsets != null) {
-                        val cutout = window.decorView.rootWindowInsets.displayCutout
-                        if (cutout != null) {
-                            val lp1 =
-                                webViewContainer.layoutParams as LinearLayout.LayoutParams
-                            lp1.topMargin = max(cutout.safeInsetTop, 0)
-                            webViewContainer.layoutParams = lp1
-                        }
+                        val inset = window.decorView.rootWindowInsets.stableInsetTop
+                        val lp1 =
+                            webViewContainer.layoutParams as LinearLayout.LayoutParams
+                        lp1.topMargin = max(inset, 0)
+                        webViewContainer.layoutParams = lp1
                     }
                 }
             }
@@ -373,7 +372,6 @@ internal class UGCEditor : AppCompatActivity() {
     }
 
 
-
     private fun initEditor(data: String?) {
         if (data == null) return
         val initST = "window.editor = (function() {var self = window.editor || {};" +
@@ -548,6 +546,7 @@ internal class UGCEditor : AppCompatActivity() {
         newIntent.putExtra("filePickerVideoMaxSizeInBytes", filePickerVideoSizeLimit)
         newIntent.putExtra("filePickerVideoMaxLengthInSeconds", filePickerFileDurationLimit)
         startActivityForResult(newIntent, CHOOSE_FILE_REQUEST_CODE)
+        overridePendingTransition(0, 0)
         return null;
     }
 

@@ -3,17 +3,23 @@ package com.inappstory.sdk.ugc.picker
 import android.annotation.TargetApi
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
+import android.view.WindowInsets
 import android.widget.ImageView
+import android.widget.RelativeLayout
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import com.inappstory.sdk.stories.utils.Sizes
 import com.inappstory.sdk.ugc.R
 import com.inappstory.sdk.ugc.camerax.BackPressedFragment
 import com.inappstory.sdk.ugc.camerax.CameraFlowFragment
+import kotlin.math.max
 
 
 internal class FileChooseActivity : AppCompatActivity() {
@@ -23,7 +29,7 @@ internal class FileChooseActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.cs_file_choose_activity)
 
-         if (savedInstanceState == null) {
+        if (savedInstanceState == null) {
             val bundle = Bundle().apply {
                 putStringArrayList(
                     "acceptTypes",
@@ -58,12 +64,19 @@ internal class FileChooseActivity : AppCompatActivity() {
                     "messages",
                     intent.getStringArrayExtra("messages")
                 )
+                putInt(
+                    "topOffset",
+                    0
+                )
             }
-            openFilePickerScreen(bundle)
+            Handler(mainLooper).post {
+                openFilePickerScreen(bundle)
+            }
         }
     }
 
-   private fun openFragment(fragment: Fragment, tag: String) {
+
+    private fun openFragment(fragment: Fragment, tag: String) {
         try {
             val fragmentManager =
                 supportFragmentManager

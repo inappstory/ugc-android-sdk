@@ -7,12 +7,16 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper.getMainLooper
 import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.MimeTypeMap
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,6 +25,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toFile
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.inappstory.sdk.stories.utils.Sizes
 import com.inappstory.sdk.ugc.R
 import com.inappstory.sdk.ugc.camerax.BackPressedFragment
 import com.inappstory.sdk.ugc.utils.faststart.FastStart
@@ -28,6 +33,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.lang.Exception
 import java.util.UUID
+import kotlin.math.max
 
 
 internal class FilePickerFragment : BackPressedFragment() {
@@ -44,6 +50,7 @@ internal class FilePickerFragment : BackPressedFragment() {
     }
 
     private lateinit var uploadButton: FloatingActionButton
+    private lateinit var closeButton: View
     private lateinit var previews: FilePreviewsList
 
     var acceptTypes = arrayListOf<String>()
@@ -96,6 +103,7 @@ internal class FilePickerFragment : BackPressedFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         uploadButton = view.findViewById(R.id.upload)
+        closeButton = view.findViewById(R.id.close_button)
         previews = view.findViewById(R.id.previews)
         arguments?.apply {
             val messageNames = getStringArray("messageNames")
@@ -117,6 +125,28 @@ internal class FilePickerFragment : BackPressedFragment() {
             if (activity is FileChooseActivity && selectedFiles.isNotEmpty()) {
                 (activity as FileChooseActivity).sendResultMultiple(convertFiles().toTypedArray())
             }
+        }
+        activity?.apply {
+            if (!Sizes.isTablet()) {
+                if (Build.VERSION.SDK_INT >= 28) {
+                    Log.e("LogWindow", "${window.decorView.rootWindowInsets}")
+                    if (window != null && window.decorView.rootWindowInsets != null) {
+                        val inset = window.decorView.rootWindowInsets.stableInsetTop
+                        val lp: RelativeLayout.LayoutParams =
+                            closeButton.layoutParams as RelativeLayout.LayoutParams
+                        val lp2: RelativeLayout.LayoutParams =
+                            previews.layoutParams as RelativeLayout.LayoutParams
+                        lp.topMargin = Sizes.dpToPxExt(8, this) + inset
+                        lp2.topMargin = inset
+                        previews.requestLayout()
+                        closeButton.requestLayout()
+                    }
+
+                }
+            }
+        }
+        closeButton.setOnClickListener {
+            activity?.onBackPressed()
         }
     }
 
